@@ -2788,10 +2788,10 @@
       downloadText(`jixels-data-export-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(payload, null, 2));
     };
 
-    const deleteAllData = () => {
+    const deleteAllData = async () => {
       const phrase = prompt("Type DELETE ALL JIXELS DATA to confirm.");
       if (phrase !== "DELETE ALL JIXELS DATA") return;
-      for (const key of [
+      const keysToDelete = [
         ERP_KEY,
         HR_KEY,
         ACCOUNTS_KEY,
@@ -2800,15 +2800,21 @@
         DIRECTOR_ACCOUNT_KEY,
         AUDIT_KEY,
         NOTIFY_KEY,
+        NOTIFY_SEEN_KEY,
         SMS_OUTBOX_KEY,
-      ]) {
-        saveJson(key, null);
+      ];
+      for (const key of keysToDelete) {
+        removeJson(key);
       }
-      audit("admin_delete_all_data", {});
+      try {
+        await getStore()?.flush?.();
+      } catch {
+        // Local IndexedDB/browser fallback has still been cleared.
+      }
       erp = ensureERP();
       render();
       renderAccounts();
-      toast("Data deleted", "Shared ERP data has been cleared.");
+      toast("Data deleted", "ERP, HR, accounts, audit, notifications, and SMS queues have been cleared.");
     };
 
     const buildAdminReportHtml = ({ dueDate }) => {
@@ -2887,7 +2893,7 @@
     if (addBtn) addBtn.addEventListener("click", safe("admin_add_phone", () => addPhone()));
     if (refreshAccountsBtn) refreshAccountsBtn.addEventListener("click", safe("admin_refresh_accounts", () => renderAccounts()));
     if (exportDataBtn) exportDataBtn.addEventListener("click", safe("admin_export_data", () => exportAllData()));
-    if (deleteDataBtn) deleteDataBtn.addEventListener("click", safe("admin_delete_data", () => deleteAllData()));
+    if (deleteDataBtn) deleteDataBtn.addEventListener("click", safe("admin_delete_data", async () => deleteAllData()));
 
     render();
     renderAccounts();
