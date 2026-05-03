@@ -19,10 +19,28 @@
 
   const loadJson = (key, fallback) => {
     const store = window.JixelsStore || null;
-    if (store?.getJson) return store.getJson(key, fallback);
+    if (store?.getJson) {
+      const value = store.getJson(key, undefined);
+      if (typeof value !== "undefined" && value !== null) return value;
+    }
     const raw = localStorage.getItem(key);
     if (!raw) return fallback;
     return safeJsonParse(raw, fallback);
+  };
+
+  const loadBrowserJson = (key, fallback) => {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    return safeJsonParse(raw, fallback);
+  };
+
+  const accountListScore = (accounts) => {
+    if (!Array.isArray(accounts)) return 0;
+    return accounts.reduce((latest, account) => {
+      const reviewedAt = Date.parse(account?.reviewedAt || "");
+      const createdAt = Date.parse(account?.createdAt || "");
+      return Math.max(latest, Number.isFinite(reviewedAt) ? reviewedAt : 0, Number.isFinite(createdAt) ? createdAt : 0);
+    }, accounts.length);
   };
 
   const bufToHex = (buffer) =>
@@ -74,8 +92,11 @@
   };
 
   const loadAgentAccounts = () => {
-    const accounts = loadJson(AGENT_ACCOUNTS_KEY, []);
-    return Array.isArray(accounts) ? accounts : [];
+    const storeAccounts = loadJson(AGENT_ACCOUNTS_KEY, []);
+    const browserAccounts = loadBrowserJson(AGENT_ACCOUNTS_KEY, []);
+    const storeList = Array.isArray(storeAccounts) ? storeAccounts : [];
+    const browserList = Array.isArray(browserAccounts) ? browserAccounts : [];
+    return accountListScore(browserList) > accountListScore(storeList) ? browserList : storeList;
   };
 
   const init = async () => {
@@ -89,8 +110,6 @@
       return;
     }
 
-    const accounts = loadAgentAccounts();
-
     const form = $("#agent-login-form");
     const identifier = $("#identifier");
     const password = $("#password");
@@ -100,16 +119,9 @@
 
     if (!form || !identifier || !password || !error) return;
 
-    if (accounts.length === 0) {
-      if (loginBtn) loginBtn.textContent = "Go to registration";
-      error.textContent =
-        "No agent accounts found on this device. Please create an account first.";
-
-      form.addEventListener("submit", (e) => {
-        e.preventDefault();
-        window.location.href = "agent-register.html";
-      });
-      return;
+    if (loadAgentAccounts().length === 0) {
+      if (loginBtn) loginBtn.textContent = "Login";
+      error.textContent = "No agent account is stored yet. Register first, then wait for Admin approval.";
     }
 
     form.addEventListener("submit", async (e) => {
@@ -119,8 +131,10 @@
       const inputId = String(identifier.value || "").trim().toLowerCase();
       const inputPassword = String(password.value || "");
 
+      await window.JixelsStore?.bootstrap?.([AGENT_ACCOUNTS_KEY]);
+      const latestAccounts = loadAgentAccounts();
       const account =
-        accounts.find(
+        latestAccounts.find(
           (a) =>
             String(a.email || "").toLowerCase() === inputId ||
             String(a.username || "").toLowerCase() === inputId,

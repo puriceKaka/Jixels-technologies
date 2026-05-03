@@ -2517,7 +2517,7 @@
       ];
     };
 
-    const updateAccountStatus = (key, accountId, status) => {
+    const updateAccountStatus = async (key, accountId, status) => {
       if (key === DIRECTOR_ACCOUNT_KEY) return;
       const list = loadJson(key, []);
       const rows = Array.isArray(list) ? list : [];
@@ -2537,6 +2537,12 @@
         }
       }
       audit("admin_account_status", { accountId, key, status });
+      try {
+        await getStore()?.flush?.();
+      } catch {
+        // IndexedDB already has the approval locally.
+      }
+      toast("Account updated", `Account ${status}. The user can try logging in now.`);
       renderAccounts();
       render();
     };

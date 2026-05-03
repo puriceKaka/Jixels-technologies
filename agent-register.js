@@ -24,7 +24,10 @@
 
   const loadJson = (key, fallback) => {
     const store = window.JixelsStore || null;
-    if (store?.getJson) return store.getJson(key, fallback);
+    if (store?.getJson) {
+      const value = store.getJson(key, undefined);
+      if (typeof value !== "undefined" && value !== null) return value;
+    }
     const raw = localStorage.getItem(key);
     if (!raw) return fallback;
     return safeJsonParse(raw, fallback);
@@ -49,7 +52,11 @@
 
   const saveJson = (key, value) => {
     const store = window.JixelsStore || null;
-    if (store?.setJson) return store.setJson(key, value);
+    if (store?.setJson) {
+      store.setJson(key, value);
+      localStorage.setItem(key, JSON.stringify(value));
+      return;
+    }
     localStorage.setItem(key, JSON.stringify(value));
     try {
       apiPostKv(key, value);
