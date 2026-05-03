@@ -102,6 +102,7 @@
   };
 
   const removeJson = (key) => {
+    if (isDirectorReadOnly()) return false;
     const store = getStore();
     try {
       if (store?.remove) {
@@ -116,7 +117,10 @@
     return true;
   };
 
+  const isDirectorReadOnly = () => Boolean(getDirectorSession() && !getSession());
+
   const saveJson = (key, value) => {
+    if (isDirectorReadOnly()) return false;
     mirrorBrowserJson(key, value);
     const store = getStore();
     try {
@@ -794,10 +798,70 @@
     }));
   };
 
+  const applyDirectorReadOnlyMode = () => {
+    if (!isDirectorReadOnly()) return;
+    document.body.dataset.readonly = "director";
+    const allowedIds = new Set([
+      "dept-logout-btn",
+      "dept-report-btn",
+      "dept-report-doc-btn",
+      "dept-report-pdf-btn",
+      "dept-report-period",
+      "dept-report-due-date",
+    ]);
+    for (const el of document.querySelectorAll("button, input, select, textarea")) {
+      if (allowedIds.has(el.id)) continue;
+      const text = String(el.textContent || el.value || "").toLowerCase();
+      const ident = `${el.id || ""} ${el.name || ""} ${el.getAttribute("placeholder") || ""}`.toLowerCase();
+      const isReadAction =
+        text.includes("view") ||
+        text.includes("show") ||
+        text.includes("hide") ||
+        text.includes("search") ||
+        ident.includes("search") ||
+        ident.includes("query") ||
+        text.includes("download") ||
+        text.includes("print") ||
+        text.includes("report");
+      if (isReadAction) continue;
+      el.disabled = true;
+      el.setAttribute("aria-disabled", "true");
+    }
+    const allowed = (target) => {
+      const el = target?.closest?.("button, input, select, textarea, a");
+      if (!el) return true;
+      if (allowedIds.has(el.id)) return true;
+      const text = String(el.textContent || el.value || "").toLowerCase();
+      const ident = `${el.id || ""} ${el.name || ""} ${el.getAttribute("placeholder") || ""}`.toLowerCase();
+      return (
+        text.includes("view") ||
+        text.includes("show") ||
+        text.includes("hide") ||
+        text.includes("search") ||
+        ident.includes("search") ||
+        ident.includes("query") ||
+        text.includes("download") ||
+        text.includes("print") ||
+        text.includes("report") ||
+        el.tagName === "A"
+      );
+    };
+    const block = (e) => {
+      if (allowed(e.target)) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      toast("Read only", "Director can view department data but cannot change it here.");
+    };
+    document.addEventListener("click", block, true);
+    document.addEventListener("change", block, true);
+    document.addEventListener("submit", block, true);
+  };
+
   const initRolePage = (role) => {
     const s = requireRole(role);
     if (!s) return;
     initLogout();
+    applyDirectorReadOnlyMode();
   };
 
   const formatInt = (value) => {
@@ -880,6 +944,7 @@
     const reportBtn = $("#dept-report-btn");
     const reportDocBtn = $("#dept-report-doc-btn");
     const reportPdfBtn = $("#dept-report-pdf-btn");
+    const periodSelect = $("#dept-report-period");
     const dueDateInput = $("#dept-report-due-date");
     const reportOut = $("#dept-report-output");
 
@@ -891,20 +956,37 @@
     const expandDetailsForExport = (html) =>
       String(html || "").replace(/<details\b(?![^>]*\bopen\b)/g, "<details open");
 
+    const getReportRange = () => {
+      const key = String(periodSelect?.value || "all").trim().toLowerCase();
+      const now = new Date();
+      const start = new Date(now);
+      start.setHours(0, 0, 0, 0);
+      if (key === "monthly") {
+        start.setDate(1);
+        return { key, label: "This month", startMs: start.getTime(), endMs: now.getTime() };
+      }
+      if (key === "yearly") {
+        start.setMonth(0, 1);
+        return { key, label: "This year", startMs: start.getTime(), endMs: now.getTime() };
+      }
+      return { key: "all", label: "All time", startMs: -Infinity, endMs: Infinity };
+    };
+
     const generate = () => {
       const dueDate = String(dueDateInput?.value || "").trim();
+      const range = getReportRange();
       try {
-        const html = expandDetailsForExport(String(buildHtml({ dueDate }) || ""));
+        const html = expandDetailsForExport(String(buildHtml({ dueDate, period: range.key, range }) || ""));
         lastHtml = html;
         reportOut.innerHTML = html || "<p>No data.</p>";
-        audit("report_generated", { title: String(title || "Report"), dueDate });
+        audit("report_generated", { title: String(title || "Report"), dueDate, period: range.key });
         return html;
       } catch (err) {
         const msg = String(err?.message || err || "Report generation failed.");
         const html = `<h3>${escapeHtml(title || "Report")}</h3><p>Report could not be generated: ${escapeHtml(msg)}</p>`;
         lastHtml = html;
         reportOut.innerHTML = html;
-        audit("report_failed", { title: String(title || "Report"), dueDate, error: msg });
+        audit("report_failed", { title: String(title || "Report"), dueDate, period: range.key, error: msg });
         return html;
       }
     };
@@ -913,6 +995,7 @@
     const refreshIfGenerated = () => (lastHtml ? generate() : "");
 
     if (reportBtn) reportBtn.addEventListener("click", safe("dept_report_generate", () => generate()));
+    if (periodSelect) periodSelect.addEventListener("change", safe("dept_report_period_change", () => generate()));
     if (reportDocBtn) {
       reportDocBtn.addEventListener("click", safe("dept_report_download_word", () => {
         const html = expandDetailsForExport(ensureHtml());
@@ -1502,7 +1585,13 @@
       }));
     }
 
-    const buildHRReportHtml = ({ dueDate }) => {
+    const inReportRange = (value, range) => {
+      if (!range || range.key === "all") return true;
+      const ms = new Date(value).getTime();
+      return Number.isFinite(ms) && ms >= range.startMs && ms <= range.endMs;
+    };
+
+    const buildHRReportHtml = ({ dueDate, range }) => {
       let hrData = ensureHR();
       hrData = loadJson(HR_KEY, hrData);
       const erp = loadJson(ERP_KEY, null);
@@ -1523,7 +1612,7 @@
       }
 
       const queue = Array.isArray(hrData.payrollQueue) ? hrData.payrollQueue : [];
-      const pendingQueue = queue.filter((x) => !x?.paid);
+      const pendingQueue = queue.filter((x) => !x?.paid && inReportRange(x.at || x.debtAt || x.paidAt, range));
       let pendingQueueTotal = 0;
       for (const item of pendingQueue) pendingQueueTotal += toMoney(item?.payAmount ?? item?.amount, 0);
 
@@ -1562,6 +1651,7 @@
 
       const recentRowsHtml = active
         .slice()
+        .filter((e) => inReportRange(e.createdAt || e.updatedAt || e.debtAt, range))
         .reverse()
         .map(
           (e) => `
@@ -1582,10 +1672,12 @@
       const now = new Date().toLocaleString();
       const due = String(dueDate || "").trim();
       const dueLine = due ? `<p><strong>Due date:</strong> ${escapeHtml(due)}</p>` : "";
+      const periodLine = `<p><strong>Period:</strong> ${escapeHtml(range?.label || "All time")}</p>`;
 
       return `
         <h3>HR Department Report</h3>
         <p><strong>Generated:</strong> ${escapeHtml(now)}</p>
+        ${periodLine}
         ${dueLine}
         <div class="report-grid">
           <div class="report-card">
@@ -2051,7 +2143,13 @@
       }
     };
 
-    const buildFinanceReportHtml = ({ dueDate }) => {
+    const inReportRange = (value, range) => {
+      if (!range || range.key === "all") return true;
+      const ms = new Date(value).getTime();
+      return Number.isFinite(ms) && ms >= range.startMs && ms <= range.endMs;
+    };
+
+    const buildFinanceReportHtml = ({ dueDate, range }) => {
       const erp = loadJson(ERP_KEY, null);
       let hr = ensureHR();
       hr = loadJson(HR_KEY, hr);
@@ -2059,15 +2157,27 @@
       const now = new Date().toLocaleString();
       const due = String(dueDate || "").trim();
       const dueLine = due ? `<p><strong>Due date:</strong> ${escapeHtml(due)}</p>` : "";
+      const periodLine = `<p><strong>Period:</strong> ${escapeHtml(range?.label || "All time")}</p>`;
 
-      const totals = erp ? computeFinanceTotals(erp) : { mpesa: 0, bank: 0, tx: 0 };
+      const periodTotals = { mpesa: 0, bank: 0, tx: 0 };
+      for (const b of erp?.branches || []) {
+        for (const tx of b.txLog || []) {
+          if (!inReportRange(tx.at, range)) continue;
+          const amount = toMoney(tx.amount, 0);
+          if (String(tx.channel || "").toLowerCase() === "bank") periodTotals.bank += amount;
+          else periodTotals.mpesa += amount;
+          periodTotals.tx += 1;
+        }
+      }
+      const totals = range?.key === "all" && erp ? computeFinanceTotals(erp) : periodTotals;
       const queue = Array.isArray(hr?.payrollQueue) ? hr.payrollQueue : [];
+      const periodQueue = queue.filter((item) => inReportRange(item?.paidAt || item?.at || item?.debtAt, range));
 
       let pendingTotal = 0;
       let paidTotal = 0;
       let pendingCount = 0;
       let paidCount = 0;
-      for (const item of queue) {
+      for (const item of periodQueue) {
         const amt = toMoney(item?.payAmount ?? item?.amount, 0);
         if (item?.paid) {
           paidTotal += amt;
@@ -2085,13 +2195,28 @@
         .sort((a, z) => String(a.name || "").localeCompare(String(z.name || "")))
         .map((b) => {
           const fin = b.financeSummary || {};
+          const rowTotals = { mpesa: 0, bank: 0, tx: 0, last: "" };
+          if (range?.key !== "all") {
+            for (const tx of b.txLog || []) {
+              if (!inReportRange(tx.at, range)) continue;
+              const amount = toMoney(tx.amount, 0);
+              if (String(tx.channel || "").toLowerCase() === "bank") rowTotals.bank += amount;
+              else rowTotals.mpesa += amount;
+              rowTotals.tx += 1;
+              if (!rowTotals.last || String(tx.at || "") > rowTotals.last) rowTotals.last = String(tx.at || "");
+            }
+          }
+          const mpesa = range?.key === "all" ? toMoney(fin.mpesaIn || 0, 0) : rowTotals.mpesa;
+          const bank = range?.key === "all" ? toMoney(fin.bankIn || 0, 0) : rowTotals.bank;
+          const txCount = range?.key === "all" ? toMoney(fin.txCount || 0, 0) : rowTotals.tx;
+          const lastTxAt = range?.key === "all" ? fin.lastTxAt : rowTotals.last;
           return `
             <tr>
               <td>${escapeHtml(b.name || b.id || "—")}</td>
-              <td class="num">${formatInt(toMoney(fin.mpesaIn || 0, 0))}</td>
-              <td class="num">${formatInt(toMoney(fin.bankIn || 0, 0))}</td>
-              <td class="num">${formatInt(toMoney(fin.txCount || 0, 0))}</td>
-              <td>${fin.lastTxAt ? escapeHtml(new Date(fin.lastTxAt).toLocaleString()) : "—"}</td>
+              <td class="num">${formatInt(mpesa)}</td>
+              <td class="num">${formatInt(bank)}</td>
+              <td class="num">${formatInt(txCount)}</td>
+              <td>${lastTxAt ? escapeHtml(new Date(lastTxAt).toLocaleString()) : "—"}</td>
             </tr>`;
         })
         .join("");
@@ -2107,7 +2232,7 @@
             </tr>`
         : "";
 
-      const payrollRowsHtml = queue
+      const payrollRowsHtml = periodQueue
         .slice()
         .reverse()
         .map((item) => {
@@ -2128,6 +2253,7 @@
       return `
         <h3>Finance Department Report</h3>
         <p><strong>Generated:</strong> ${escapeHtml(now)}</p>
+        ${periodLine}
         ${dueLine}
 
         <div class="report-grid">
@@ -2183,7 +2309,7 @@
           </table>
         </details>
 
-        <h3 style="margin-top: 14px;">Payroll Queue (latest)</h3>
+        <h3 style="margin-top: 14px;">Payroll Queue (${escapeHtml(range?.label || "All time")})</h3>
         <table class="table" aria-label="Payroll queue report">
           <thead>
             <tr>
@@ -2312,11 +2438,18 @@
       if (updatedOut) updatedOut.textContent = erp.lastUpdated ? new Date(erp.lastUpdated).toLocaleString() : "—";
     };
 
-    const buildOpsSalesReportHtml = ({ dueDate }) => {
+    const inReportRange = (value, range) => {
+      if (!range || range.key === "all") return true;
+      const ms = new Date(value).getTime();
+      return Number.isFinite(ms) && ms >= range.startMs && ms <= range.endMs;
+    };
+
+    const buildOpsSalesReportHtml = ({ dueDate, range }) => {
       const erp = loadJson(ERP_KEY, null);
       const now = new Date().toLocaleString();
       const due = String(dueDate || "").trim();
       const dueLine = due ? `<p><strong>Due date:</strong> ${escapeHtml(due)}</p>` : "";
+      const periodLine = `<p><strong>Period:</strong> ${escapeHtml(range?.label || "All time")}</p>`;
 
       if (!erp || !Array.isArray(erp.branches)) {
         return `<h3>${escapeHtml(roleLabel)} Report</h3><p>No ERP data.</p>`;
@@ -2324,6 +2457,8 @@
 
       let totalStock = 0;
       let totalSold = 0;
+      let periodSold = 0;
+      let periodRevenue = 0;
       let totalDamaged = 0;
       let totalLost = 0;
 
@@ -2333,6 +2468,19 @@
           const t = computeBranchInventoryTotals(b);
           totalStock += t.stock;
           totalSold += t.sold;
+          let branchPeriodSold = 0;
+          let branchPeriodRevenue = 0;
+          for (const p of b.soldPhones || []) {
+            if (!inReportRange(p.soldAt, range)) continue;
+            branchPeriodSold += 1;
+            branchPeriodRevenue += toMoney(p.soldAmount || p.price, 0);
+          }
+          for (const tx of b.txLog || []) {
+            if (!inReportRange(tx.at, range)) continue;
+            branchPeriodRevenue += toMoney(tx.amount, 0);
+          }
+          periodSold += branchPeriodSold;
+          periodRevenue += branchPeriodRevenue;
           totalDamaged += t.damaged;
           totalLost += t.lost;
           return `
@@ -2341,6 +2489,7 @@
               <td class="num">${formatInt(t.models)}</td>
               <td class="num">${formatInt(t.stock)}</td>
               <td class="num">${formatInt(t.sold)}</td>
+              <td class="num">${formatInt(branchPeriodSold)}</td>
               <td class="num">${formatInt(t.damaged)}</td>
               <td class="num">${formatInt(t.lost)}</td>
               <td>${escapeHtml(t.topModel || "—")}</td>
@@ -2351,6 +2500,7 @@
       return `
         <h3>${escapeHtml(roleLabel)} Department Report</h3>
         <p><strong>Generated:</strong> ${escapeHtml(now)}</p>
+        ${periodLine}
         ${dueLine}
 
         <div class="report-grid">
@@ -2361,6 +2511,14 @@
           <div class="report-card">
             <div class="label">Total sold</div>
             <div class="value">${formatInt(totalSold)}</div>
+          </div>
+          <div class="report-card">
+            <div class="label">Sold in period</div>
+            <div class="value">${formatInt(periodSold)}</div>
+          </div>
+          <div class="report-card">
+            <div class="label">Period revenue (KES)</div>
+            <div class="value">${formatInt(periodRevenue)}</div>
           </div>
           <div class="report-card">
             <div class="label">Damaged / Lost</div>
@@ -2376,13 +2534,14 @@
               <th class="num">Models</th>
               <th class="num">In stock</th>
               <th class="num">Sold</th>
+              <th class="num">Period sold</th>
               <th class="num">Damaged</th>
               <th class="num">Lost</th>
               <th>Top model</th>
             </tr>
           </thead>
           <tbody>
-            ${tableRowsHtml || `<tr><td colspan="7">No branches found.</td></tr>`}
+            ${tableRowsHtml || `<tr><td colspan="8">No branches found.</td></tr>`}
           </tbody>
         </table>
       `;

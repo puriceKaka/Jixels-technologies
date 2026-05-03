@@ -370,6 +370,7 @@
     const reportDocBtn = $("#branch-report-doc-btn");
     const reportPdfBtn = $("#branch-report-pdf-btn");
     const chartsBtn = $("#branch-charts-btn");
+    const reportPeriod = $("#report-period");
     const dueDateInput = $("#report-due-date");
     const reportOut = $("#branch-report-output");
 
@@ -979,6 +980,39 @@
       return d.toISOString().slice(0, 10);
     };
 
+    const parseTimeMs = (value) => {
+      const ms = new Date(value).getTime();
+      return Number.isFinite(ms) ? ms : NaN;
+    };
+
+    const startOfDay = (date) => {
+      const d = new Date(date);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    };
+
+    const getReportRange = () => {
+      const key = String(reportPeriod?.value || "all").trim().toLowerCase();
+      const now = new Date();
+      if (key === "monthly") {
+        const start = startOfDay(now);
+        start.setDate(1);
+        return { key, label: "This month", startMs: start.getTime(), endMs: now.getTime(), start, end: now };
+      }
+      if (key === "yearly") {
+        const start = startOfDay(now);
+        start.setMonth(0, 1);
+        return { key, label: "This year", startMs: start.getTime(), endMs: now.getTime(), start, end: now };
+      }
+      return { key: "all", label: "All time", startMs: -Infinity, endMs: Infinity, start: null, end: now };
+    };
+
+    const inReportRange = (value, range) => {
+      if (range.key === "all") return true;
+      const ms = parseTimeMs(value);
+      return Number.isFinite(ms) && ms >= range.startMs && ms <= range.endMs;
+    };
+
     const makeReportModelRows = (branch) =>
       (branch.inventory || [])
         .slice()
@@ -993,8 +1027,9 @@
         )
         .join("");
 
-    const makeReportDlRows = (branch) =>
+    const makeReportDlRows = (branch, range) =>
       (branch.damageLoss || [])
+        .filter((r) => inReportRange(r.at, range))
         .slice()
         .sort((a, z) => String(z.at).localeCompare(String(a.at)))
         .slice(0, 40)
@@ -1010,8 +1045,9 @@
         )
         .join("");
 
-    const makeReportTxRows = (branch) =>
+    const makeReportTxRows = (branch, range) =>
       (branch.txLog || [])
+        .filter((t) => inReportRange(t.at, range))
         .slice()
         .sort((a, z) => String(z.at || "").localeCompare(String(a.at || "")))
         .slice(0, 30)
@@ -1030,20 +1066,25 @@
 
     const buildReportHtml = (branch) => {
       const totals = computeBranchTotals(branch);
+      const range = getReportRange();
       const generatedAt = new Date();
       const dueIso = getDueDateIso();
       const dueDate = new Date(`${dueIso}T00:00:00`);
       const updated = branch.updatedAt ? new Date(branch.updatedAt) : generatedAt;
 
       const txCount = Array.isArray(branch.txLog)
-        ? branch.txLog.length
+        ? branch.txLog.filter((t) => inReportRange(t.at, range)).length
         : Array.isArray(branch.transactions)
           ? branch.transactions.length
           : 0;
+      const periodSold = (branch.soldPhones || []).filter((p) => inReportRange(p.soldAt, range)).length;
+      const periodRevenue = (branch.txLog || [])
+        .filter((t) => inReportRange(t.at, range))
+        .reduce((sum, t) => sum + (Number(t.amount || 0) || 0), 0);
 
       const modelRows = makeReportModelRows(branch);
-      const dlRows = makeReportDlRows(branch);
-      const txRows = makeReportTxRows(branch);
+      const dlRows = makeReportDlRows(branch, range);
+      const txRows = makeReportTxRows(branch, range);
 
       return `
         <h3>Branch Operations Report</h3>
@@ -1052,6 +1093,10 @@
           <div class="report-card">
             <div class="label">Generated</div>
             <div class="value" style="font-size:16px;">${generatedAt.toLocaleString()}</div>
+          </div>
+          <div class="report-card">
+            <div class="label">Period</div>
+            <div class="value" style="font-size:16px;">${range.label}</div>
           </div>
           <div class="report-card">
             <div class="label">Due date</div>
@@ -1076,6 +1121,14 @@
           <div class="report-card">
             <div class="label">Sold</div>
             <div class="value">${formatInt(totals.sold)}</div>
+          </div>
+          <div class="report-card">
+            <div class="label">Sold in period</div>
+            <div class="value">${formatInt(periodSold)}</div>
+          </div>
+          <div class="report-card">
+            <div class="label">Period revenue (KES)</div>
+            <div class="value">${formatInt(periodRevenue)}</div>
           </div>
           <div class="report-card">
             <div class="label">Damaged</div>
@@ -1105,7 +1158,7 @@
           </table>
         </div>
 
-        <p style="margin-top:12px; font-weight:800;">Damages & loss (latest)</p>
+        <p style="margin-top:12px; font-weight:800;">Damages & loss (${range.label.toLowerCase()})</p>
         <div class="table-wrap" style="padding:12px 0 0;">
           <table class="table" aria-label="Damage and loss report">
             <thead>
@@ -1121,7 +1174,7 @@
           </table>
         </div>
 
-        <p style="margin-top:12px; font-weight:800;">Transactions (latest)</p>
+        <p style="margin-top:12px; font-weight:800;">Transactions (${range.label.toLowerCase()})</p>
         <div class="table-wrap" style="padding:12px 0 0;">
           <table class="table" aria-label="Transactions report">
             <thead>
@@ -1150,9 +1203,17 @@
     const downloadReportCsv = () => {
       const branch = normalizeBranch(getBranch());
       if (!branch) return;
+      const range = getReportRange();
       const rows = [["BranchId", "Branch", "Model", "Stock", "Sold"]];
       for (const row of branch.inventory || []) {
         rows.push([branch.id, branch.name, row.model, row.stock, row.sold]);
+      }
+      rows.push([]);
+      rows.push(["Transactions", range.label]);
+      rows.push(["Date", "Channel", "Reference", "Serial", "Customer", "AmountKES"]);
+      for (const tx of branch.txLog || []) {
+        if (!inReportRange(tx.at, range)) continue;
+        rows.push([tx.at || "", tx.channel || "", tx.ref || "", tx.serial || "", tx.customerPhone || "", tx.amount || 0]);
       }
       const csv = rows.map((r) => r.map(csvEscape).join(",")).join("\n");
       downloadText(
@@ -1424,6 +1485,7 @@
     if (txCustomerPhone) txCustomerPhone.addEventListener("input", () => setTxButtonState());
 
     if (reportBtn) reportBtn.addEventListener("click", () => generateReport());
+    if (reportPeriod) reportPeriod.addEventListener("change", () => generateReport());
     if (reportCsvBtn)
       reportCsvBtn.addEventListener("click", () => downloadReportCsv());
     if (reportDocBtn) reportDocBtn.addEventListener("click", () => downloadReportDoc());
