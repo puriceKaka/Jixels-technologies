@@ -21,12 +21,22 @@
   };
 
   const loadJson = (key, fallback) => {
+    const store = window.JixelsStore || null;
+    if (store?.getJson) {
+      const value = store.getJson(key, undefined);
+      if (typeof value !== "undefined" && value !== null) return value;
+    }
     const raw = localStorage.getItem(key);
     if (!raw) return fallback;
     return safeJsonParse(raw, fallback);
   };
 
   const saveJson = (key, value) => {
+    try {
+      window.JixelsStore?.setJson?.(key, value);
+    } catch {
+      // fall back below
+    }
     localStorage.setItem(key, JSON.stringify(value));
     try {
       if (localStorage.getItem(API_ENABLED_KEY) === "1") {
@@ -50,6 +60,11 @@
   };
 
   const bootstrapKeyFromApi = async (key) => {
+    const store = window.JixelsStore || null;
+    if (store?.bootstrap) {
+      const res = await store.bootstrap([key]);
+      return !!res?.ok;
+    }
     if (!apiEnabled()) return false;
     if (localStorage.getItem(key)) return true;
     try {
@@ -1424,10 +1439,18 @@
     setTxButtonState();
 
     // Cross-tab sync with Director/other sessions
-    window.addEventListener("storage", (e) => {
-      if (e.key !== DATA_KEY) return;
-      sync();
-    });
+    const store = window.JixelsStore || null;
+    if (store?.subscribe) {
+      store.subscribe((ev) => {
+        if (!ev || ev.type !== "set" || ev.key !== DATA_KEY) return;
+        sync();
+      });
+    } else {
+      window.addEventListener("storage", (e) => {
+        if (e.key !== DATA_KEY) return;
+        sync();
+      });
+    }
   };
 
   const main = async () => {

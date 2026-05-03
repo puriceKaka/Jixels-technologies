@@ -871,7 +871,7 @@
     const dueDateInput = $("#dept-report-due-date");
     const reportOut = $("#dept-report-output");
 
-    if (!reportBtn || !reportDocBtn || !reportPdfBtn || !reportOut || typeof buildHtml !== "function") return;
+    if (!reportOut || typeof buildHtml !== "function") return null;
 
     let lastHtml = "";
     const today = new Date().toISOString().slice(0, 10);
@@ -891,20 +891,24 @@
     const ensureHtml = () => lastHtml || generate();
     const refreshIfGenerated = () => (lastHtml ? generate() : "");
 
-    reportBtn.addEventListener("click", safe("dept_report_generate", () => generate()));
-    reportDocBtn.addEventListener("click", safe("dept_report_download_word", () => {
-      const html = expandDetailsForExport(ensureHtml());
-      if (!html) return;
-      const filename = `${filenameBase || "jixels-report"}-${today}.doc`;
-      downloadWordDocFile(filename, html, title || "Report");
-      audit("report_export_word", { title: String(title || "Report"), filename });
-    }));
-    reportPdfBtn.addEventListener("click", safe("dept_report_print_pdf", () => {
-      const html = expandDetailsForExport(ensureHtml());
-      if (!html) return;
-      printHtmlReport(html, title || "Report");
-      audit("report_export_pdf", { title: String(title || "Report") });
-    }));
+    if (reportBtn) reportBtn.addEventListener("click", safe("dept_report_generate", () => generate()));
+    if (reportDocBtn) {
+      reportDocBtn.addEventListener("click", safe("dept_report_download_word", () => {
+        const html = expandDetailsForExport(ensureHtml());
+        if (!html) return;
+        const filename = `${filenameBase || "jixels-report"}-${today}.doc`;
+        downloadWordDocFile(filename, html, title || "Report");
+        audit("report_export_word", { title: String(title || "Report"), filename });
+      }));
+    }
+    if (reportPdfBtn) {
+      reportPdfBtn.addEventListener("click", safe("dept_report_print_pdf", () => {
+        const html = expandDetailsForExport(ensureHtml());
+        if (!html) return;
+        printHtmlReport(html, title || "Report");
+        audit("report_export_pdf", { title: String(title || "Report") });
+      }));
+    }
 
     return { generate, refreshIfGenerated };
   };

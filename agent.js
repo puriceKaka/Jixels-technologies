@@ -22,6 +22,11 @@
   };
 
   const loadJson = (key, fallback) => {
+    const store = window.JixelsStore || null;
+    if (store?.getJson) {
+      const value = store.getJson(key, undefined);
+      if (typeof value !== "undefined" && value !== null) return value;
+    }
     const raw = localStorage.getItem(key);
     if (!raw) return fallback;
     return safeJsonParse(raw, fallback);
@@ -45,6 +50,11 @@
   };
 
   const saveJson = (key, value) => {
+    try {
+      window.JixelsStore?.setJson?.(key, value);
+    } catch {
+      // fall back below
+    }
     localStorage.setItem(key, JSON.stringify(value));
     try {
       apiPostKv(key, value);
@@ -54,6 +64,11 @@
   };
 
   const bootstrapKeyFromApi = async (key) => {
+    const store = window.JixelsStore || null;
+    if (store?.bootstrap) {
+      const res = await store.bootstrap([key]);
+      return !!res?.ok;
+    }
     if (!apiEnabled()) return false;
     if (localStorage.getItem(key)) return true;
     try {
@@ -659,10 +674,18 @@
     sync();
     navigateTo(String(window.location.hash || "").replace("#", "") || "overview");
 
-    window.addEventListener("storage", (e) => {
-      if (e.key !== ERP_KEY) return;
-      sync();
-    });
+    const store = window.JixelsStore || null;
+    if (store?.subscribe) {
+      store.subscribe((ev) => {
+        if (!ev || ev.type !== "set" || ev.key !== ERP_KEY) return;
+        sync();
+      });
+    } else {
+      window.addEventListener("storage", (e) => {
+        if (e.key !== ERP_KEY) return;
+        sync();
+      });
+    }
   };
 
   const main = async () => {
