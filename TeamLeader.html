@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Team Leader Dashboard • Jixels Technologies</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="images/jixels-icon-192.png" type="image/png" />
+    <link rel="stylesheet" href="director.css" />
+    <link rel="stylesheet" href="teamleader.css" />
+  </head>
+  <body data-page="teamleader-dashboard">
+    <header class="topbar">
+      <div class="brand">
+        <img class="logo-img" src="images/jixels-logo.png" alt="" />
+        <div>
+          <div class="brand-title">Jixels Technologies</div>
+          <div class="brand-subtitle muted">Team Leader Dashboard</div>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <span id="teamleader-badge" class="badge">Team Leader</span>
+        <button id="teamleader-sync-btn" class="btn" type="button">Sync</button>
+        <button id="teamleader-logout-btn" class="btn" type="button">Logout</button>
+      </div>
+    </header>
+
+    <main class="layout teamleader-layout">
+      <section class="panel" aria-label="Team leader overview">
+        <div class="panel-header">
+          <h2>Branch Overview</h2>
+          <div class="panel-actions">
+            <span id="teamleader-indicator" class="pill">Live</span>
+          </div>
+        </div>
+        <div class="kpis">
+          <article class="kpi">
+            <div class="kpi-label">Available phones</div>
+            <div id="tl-kpi-available" class="kpi-value">0</div>
+            <div class="kpi-foot muted">Not allocated</div>
+          </article>
+          <article class="kpi">
+            <div class="kpi-label">Allocated phones</div>
+            <div id="tl-kpi-allocated" class="kpi-value">0</div>
+            <div class="kpi-foot muted">Assigned to agents</div>
+          </article>
+          <article class="kpi">
+            <div class="kpi-label">Agents</div>
+            <div id="tl-kpi-agents" class="kpi-value">0</div>
+            <div class="kpi-foot muted">Approved in this branch</div>
+          </article>
+          <article class="kpi">
+            <div class="kpi-label">Branch</div>
+            <div id="tl-kpi-branch" class="kpi-value">—</div>
+            <div class="kpi-foot muted">Current branch</div>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel" id="allocate" aria-label="Allocate phone">
+        <div class="panel-header">
+          <h2>Allocate Phone To Agent</h2>
+          <div class="panel-actions muted">IMEI / serial based allocation</div>
+        </div>
+
+        <div class="teamleader-form">
+          <label class="field">
+            <span>IMEI / Serial number</span>
+            <input id="alloc-serial" type="text" list="phone-serial-list" placeholder="Enter IMEI or serial" />
+            <datalist id="phone-serial-list"></datalist>
+          </label>
+
+          <label class="field">
+            <span>Registered agent</span>
+            <select id="alloc-agent"></select>
+          </label>
+
+          <label class="field">
+            <span>Agent name</span>
+            <input id="alloc-agent-name" type="text" placeholder="Agent full name" />
+          </label>
+
+          <label class="field">
+            <span>Phone number</span>
+            <input id="alloc-agent-phone" type="text" inputmode="tel" placeholder="e.g. 07..." />
+          </label>
+
+          <label class="field">
+            <span>ID number</span>
+            <input id="alloc-agent-idno" type="text" inputmode="numeric" placeholder="National ID" />
+          </label>
+
+          <label class="field teamleader-notes">
+            <span>Other details</span>
+            <textarea id="alloc-notes" rows="2" placeholder="Optional notes"></textarea>
+          </label>
+
+          <button id="alloc-save-btn" class="btn primary" type="button">Allocate phone</button>
+          <button id="alloc-clear-btn" class="btn" type="button">Clear</button>
+        </div>
+
+        <p id="alloc-helper" class="form-error teamleader-helper" role="alert" aria-live="polite"></p>
+      </section>
+
+      <section class="panel" aria-label="Branch agents">
+        <div class="panel-header">
+          <h2>Agents Under Branch</h2>
+          <div class="panel-actions muted">Approved agent accounts</div>
+        </div>
+        <div class="table-wrap" role="region" aria-label="Branch agents table" tabindex="0">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Agent</th>
+                <th>Email</th>
+                <th>Branch</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="tl-agents-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Phone allocations">
+        <div class="panel-header">
+          <h2>Phone Allocations</h2>
+          <div class="panel-actions muted">Branch inventory assignments</div>
+        </div>
+        <div class="table-wrap" role="region" aria-label="Phone allocations table" tabindex="0">
+          <table class="table teamleader-table">
+            <thead>
+              <tr>
+                <th>IMEI / Serial</th>
+                <th>Model</th>
+                <th>Price</th>
+                <th>Agent</th>
+                <th>Phone</th>
+                <th>ID number</th>
+                <th>Allocated</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tl-phones-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="kv-client.js"></script>
+    <script src="jixels-store.js"></script>
+    <script src="teamleader.js"></script>
+    <script src="pwa.js"></script>
+  </body>
+</html>

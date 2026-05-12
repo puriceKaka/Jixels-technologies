@@ -560,6 +560,7 @@
           <td></td>
           <td class="num"></td>
           <td></td>
+          <td></td>
           <td class="num"></td>
         `;
 
@@ -569,6 +570,7 @@
         tr.children[3].textContent = p.storage || "—";
         tr.children[4].textContent = formatInt(p.price || 0);
         tr.children[5].textContent = String(p.status || "in_stock").replace("_", " ");
+        tr.children[6].textContent = p.assignedAgentName || p.assignedAgentUsername || "Open";
 
         const delBtn = document.createElement("button");
         delBtn.className = "btn";
@@ -587,7 +589,7 @@
           renderKPIs();
         });
 
-        tr.children[6].appendChild(delBtn);
+        tr.children[7].appendChild(delBtn);
         invTbody.appendChild(tr);
       }
     };

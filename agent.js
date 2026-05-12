@@ -360,6 +360,14 @@
 
     const getBranch = () => (erp.branches || []).find((b) => b.id === session.branchId) || null;
 
+    const phoneAvailableToAgent = (phone) => {
+      const assignedId = String(phone?.assignedAgentId || "").trim();
+      const assignedName = String(phone?.assignedAgentUsername || phone?.assignedAgentName || "").trim().toLowerCase();
+      if (!assignedId && !assignedName) return true;
+      if (assignedId && assignedId === String(account.id || "")) return true;
+      return assignedName && assignedName === String(account.username || "").trim().toLowerCase();
+    };
+
     const normalizeBranch = (branch) => {
       if (!branch) return null;
       if (!Array.isArray(branch.inventory)) branch.inventory = [];
@@ -409,7 +417,7 @@
       const branch = normalizeBranch(getBranch());
       if (!branch) return;
 
-      const phones = Array.isArray(branch.phones) ? branch.phones : [];
+      const phones = (Array.isArray(branch.phones) ? branch.phones : []).filter(phoneAvailableToAgent);
       if (serialList) {
         serialList.textContent = "";
         for (const p of phones.slice().sort((a, z) => String(a.serial || "").localeCompare(String(z.serial || "")))) {
@@ -423,12 +431,13 @@
       invTbody.textContent = "";
       for (const p of phones.slice().sort((a, z) => String(a.model || "").localeCompare(String(z.model || ""))).slice(0, 120)) {
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td></td><td></td><td></td><td></td><td class="num"></td>`;
+        tr.innerHTML = `<td></td><td></td><td></td><td></td><td class="num"></td><td></td>`;
         tr.children[0].textContent = p.serial || "—";
         tr.children[1].textContent = p.model || "—";
         tr.children[2].textContent = p.color || "—";
         tr.children[3].textContent = p.storage || "—";
         tr.children[4].textContent = formatInt(Number(p.price || 0) || 0);
+        tr.children[5].textContent = p.assignedAgentName || p.assignedAgentUsername || "Open";
         invTbody.appendChild(tr);
       }
     };
@@ -622,6 +631,11 @@
         if (amountInput) amountInput.value = "";
         return;
       }
+      if (!phoneAvailableToAgent(phone)) {
+        if (helper) helper.textContent = "This phone is allocated to another agent.";
+        if (amountInput) amountInput.value = "";
+        return;
+      }
 
       if (helper) {
         helper.textContent = `${phone.model || "Phone"} • ${phone.storage || ""} ${phone.color ? `• ${phone.color}` : ""} • KES ${formatInt(Number(phone.price || 0) || 0)}`.replaceAll("  ", " ").trim();
@@ -653,6 +667,10 @@
         ) || null;
       if (!phone) {
         if (helper) helper.textContent = "Serial not found in inventory.";
+        return serialInput?.focus?.();
+      }
+      if (!phoneAvailableToAgent(phone)) {
+        if (helper) helper.textContent = "This phone is allocated to another agent.";
         return serialInput?.focus?.();
       }
 

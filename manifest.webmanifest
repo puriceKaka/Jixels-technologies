@@ -1,7 +1,7 @@
 {
   "name": "Jixels Technologies ERP",
   "short_name": "Jixels ERP",
-  "description": "Jixels Technologies ERP for Director, Admin, Branch, Agent, Finance, Sales, HR, and Operations.",
+  "description": "Jixels Technologies ERP for Director, Admin, Branch, Team Leader, Agent, Finance, Sales, HR, and Operations.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

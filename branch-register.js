@@ -5,6 +5,7 @@
 
   const BRANCH_ACCOUNTS_KEY = "jixels_branch_accounts_v1";
   const AGENT_ACCOUNTS_KEY = "jixels_agent_accounts_v1";
+  const TEAMLEADER_ACCOUNTS_KEY = "jixels_teamleader_accounts_v1";
   const DEPT_ACCOUNTS_KEY = "jixels_departments_accounts_v1";
   const DIRECTOR_ACCOUNT_KEY = "jixels_director_account_v1";
   const DATA_KEY = "jixels_erp_v1";
@@ -123,6 +124,7 @@
     const buckets = [
       loadJson(BRANCH_ACCOUNTS_KEY, []),
       loadJson(AGENT_ACCOUNTS_KEY, []),
+      loadJson(TEAMLEADER_ACCOUNTS_KEY, []),
       loadJson(DEPT_ACCOUNTS_KEY, []),
     ];
     const director = loadJson(DIRECTOR_ACCOUNT_KEY, null);
@@ -140,6 +142,7 @@
     await window.JixelsStore?.bootstrap?.([
       BRANCH_ACCOUNTS_KEY,
       AGENT_ACCOUNTS_KEY,
+      TEAMLEADER_ACCOUNTS_KEY,
       DEPT_ACCOUNTS_KEY,
       DIRECTOR_ACCOUNT_KEY,
       DATA_KEY,

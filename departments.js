@@ -9,6 +9,7 @@
   const HR_KEY = "jixels_hr_v1";
   const BRANCH_ACCOUNTS_KEY = "jixels_branch_accounts_v1";
   const AGENT_ACCOUNTS_KEY = "jixels_agent_accounts_v1";
+  const TEAMLEADER_ACCOUNTS_KEY = "jixels_teamleader_accounts_v1";
   const DIRECTOR_ACCOUNT_KEY = "jixels_director_account_v1";
   const AUDIT_KEY = "jixels_audit_v1";
   const AUDIT_MAX = 1200;
@@ -141,6 +142,7 @@
       ACCOUNTS_KEY,
       BRANCH_ACCOUNTS_KEY,
       AGENT_ACCOUNTS_KEY,
+      TEAMLEADER_ACCOUNTS_KEY,
       DIRECTOR_ACCOUNT_KEY,
       ERP_KEY,
       HR_KEY,
@@ -2855,12 +2857,14 @@
     const loadAccountRows = () => {
       const branchAccounts = compactAccountList(BRANCH_ACCOUNTS_KEY, "branch");
       const agentAccounts = compactAccountList(AGENT_ACCOUNTS_KEY, "agent");
+      const teamLeaderAccounts = compactAccountList(TEAMLEADER_ACCOUNTS_KEY, "teamleader");
       const deptAccounts = compactAccountList(ACCOUNTS_KEY, "department");
       const director = loadJson(DIRECTOR_ACCOUNT_KEY, null);
       const seen = new Set();
       return [
         ...(Array.isArray(branchAccounts) ? branchAccounts : []).map((a) => ({ type: "branch", key: BRANCH_ACCOUNTS_KEY, account: a })),
         ...(Array.isArray(agentAccounts) ? agentAccounts : []).map((a) => ({ type: "agent", key: AGENT_ACCOUNTS_KEY, account: a })),
+        ...(Array.isArray(teamLeaderAccounts) ? teamLeaderAccounts : []).map((a) => ({ type: "team leader", key: TEAMLEADER_ACCOUNTS_KEY, account: a })),
         ...(Array.isArray(deptAccounts) ? deptAccounts : []).map((a) => ({ type: "department", key: ACCOUNTS_KEY, account: a })),
         ...(director ? [{ type: "director", key: DIRECTOR_ACCOUNT_KEY, account: director }] : []),
       ].filter((row) => {
@@ -2998,6 +3002,7 @@
         ACCOUNTS_KEY,
         BRANCH_ACCOUNTS_KEY,
         AGENT_ACCOUNTS_KEY,
+        TEAMLEADER_ACCOUNTS_KEY,
         DIRECTOR_ACCOUNT_KEY,
         AUDIT_KEY,
         NOTIFY_KEY,
@@ -3021,6 +3026,7 @@
         departmentAccounts: loadJson(ACCOUNTS_KEY, []),
         branchAccounts: loadJson(BRANCH_ACCOUNTS_KEY, []),
         agentAccounts: loadJson(AGENT_ACCOUNTS_KEY, []),
+        teamLeaderAccounts: loadJson(TEAMLEADER_ACCOUNTS_KEY, []),
         directorAccount: loadJson(DIRECTOR_ACCOUNT_KEY, null),
         audit: loadJson(AUDIT_KEY, []),
         notifications: loadJson(NOTIFY_KEY, null),
@@ -3044,6 +3050,7 @@
         ACCOUNTS_KEY,
         BRANCH_ACCOUNTS_KEY,
         AGENT_ACCOUNTS_KEY,
+        TEAMLEADER_ACCOUNTS_KEY,
         DIRECTOR_ACCOUNT_KEY,
         AUDIT_KEY,
         NOTIFY_KEY,

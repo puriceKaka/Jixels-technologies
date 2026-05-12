@@ -1,0 +1,47 @@
+/* Team leader portal styles */
+
+.teamleader-layout {
+  gap: 18px;
+}
+
+.teamleader-form {
+  padding: 14px 18px 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.teamleader-notes {
+  grid-column: span 2;
+}
+
+.teamleader-helper {
+  padding: 0 18px 14px;
+  margin: 0;
+}
+
+.teamleader-table {
+  min-width: 1040px;
+}
+
+.teamleader-empty {
+  color: var(--muted);
+}
+
+@media (max-width: 980px) {
+  .teamleader-form {
+    grid-template-columns: 1fr;
+  }
+
+  .teamleader-notes {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 520px) {
+  body[data-page="teamleader-dashboard"] .topbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
