@@ -68,6 +68,7 @@
   let catalog = [];
   let settings = {};
   let org = null;
+  let selected = new Set();
 
   const portalUrl = (portal) => {
     const tenant = window.EnterpriseCore?.currentTenantId?.() || "";
@@ -118,78 +119,161 @@
 
   const render = () => {
     const installed = new Set(settings.installedPortals || []);
+    selected = new Set([...selected].filter((id) => !installed.has(id)));
     $("#portal-grid").innerHTML = catalog
       .map(
-        (portal) => `
-          <article class="portal-install-card">
-            <h3>${escapeHtml(portal.title)}</h3>
+        (portal) => {
+          const isInstalled = installed.has(portal.id);
+          const isSelected = selected.has(portal.id);
+          return `
+          <article class="portal-install-card ${isInstalled ? "is-installed" : "is-selectable"} ${isSelected ? "is-selected" : ""}" data-portal-card="${escapeHtml(portal.id)}">
+            <div class="portal-card-top">
+              <h3>${escapeHtml(portal.title)}</h3>
+              ${
+                isInstalled
+                  ? `<span class="portal-status">Installed</span>`
+                  : `<label class="portal-select-control">
+                      <input type="checkbox" data-portal-check="${escapeHtml(portal.id)}" ${isSelected ? "checked" : ""} />
+                      Select
+                    </label>`
+              }
+            </div>
             <p>${escapeHtml(portal.description)}</p>
             <ul class="portal-feature-list">
               ${(portal.features || []).map((feature) => `<li>${escapeHtml(feature)}</li>`).join("")}
             </ul>
-            <span class="portal-status">${installed.has(portal.id) ? "Installed" : "Not Installed"}</span>
+            ${isInstalled ? "" : `<span class="portal-status">${isSelected ? "Selected for unified install" : "Ready to install"}</span>`}
             <div class="portal-card-actions">
               ${
-                installed.has(portal.id)
+                isInstalled
                   ? `<a class="btn primary" href="${escapeHtml(portalUrl(portal))}" ${portal.external ? 'target="_blank" rel="noopener noreferrer"' : ""}>Open Portal</a>`
-                  : `<button class="btn primary" data-portal="${escapeHtml(portal.id)}" type="button">Install</button>`
+                  : `<button class="btn" data-portal-toggle="${escapeHtml(portal.id)}" type="button">${isSelected ? "Remove from install" : "Add to install"}</button>`
               }
             </div>
-          </article>`,
+          </article>`;
+        },
       )
       .join("");
+    renderBulkBar();
   };
 
-  const install = async (portalId) => {
+  const renderBulkBar = () => {
+    const count = selected.size;
+    const installed = new Set(settings.installedPortals || []);
+    const available = catalog.filter((portal) => !installed.has(portal.id));
+    const names = [...selected]
+      .map((id) => catalog.find((portal) => portal.id === id)?.title)
+      .filter(Boolean)
+      .slice(0, 3);
+    const countEl = $("#portal-selected-count");
+    const summaryEl = $("#portal-selected-summary");
+    const installBtn = $("#portal-install-selected");
+    const clearBtn = $("#portal-clear-selection");
+    if (countEl) countEl.textContent = `${count} selected`;
+    if (summaryEl) {
+      summaryEl.textContent = count
+        ? `${names.join(", ")}${count > names.length ? ` and ${count - names.length} more` : ""} will install as one workspace app.`
+        : available.length
+          ? "Pick the modules your organization needs."
+          : "All available portals are already installed.";
+    }
+    if (installBtn) installBtn.disabled = count === 0;
+    if (clearBtn) clearBtn.disabled = count === 0;
+  };
+
+  const toggleSelection = (portalId, force) => {
+    const installed = new Set(settings.installedPortals || []);
+    if (installed.has(portalId)) return;
+    const shouldSelect = typeof force === "boolean" ? force : !selected.has(portalId);
+    if (shouldSelect) selected.add(portalId);
+    else selected.delete(portalId);
+    render();
+  };
+
+  const selectCoreSet = () => {
+    const installed = new Set(settings.installedPortals || []);
+    ["admin", "branch", "departments", "staff", "inventory", "finance", "reporting", "analytics"].forEach((id) => {
+      if (!installed.has(id) && catalog.some((portal) => portal.id === id)) selected.add(id);
+    });
+    render();
+  };
+
+  const install = async (portalIds) => {
+    const ids = Array.from(new Set((Array.isArray(portalIds) ? portalIds : [portalIds]).filter(Boolean)));
+    if (!ids.length) return;
     const progress = $("#portal-progress");
-    if (progress) progress.textContent = "Installing portal and configuring workspace...";
+    if (progress) progress.textContent = `Installing ${ids.length} portal${ids.length === 1 ? "" : "s"} as one workspace app...`;
     let data;
     try {
       const response = await fetchJson("/api/org-admin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "install-portal", portalId }),
+        body: JSON.stringify({ action: "install-portals", portalIds: ids }),
       });
       data = response.data;
       if (!response.res.ok || !data?.ok) throw new Error(data?.error || "Install failed");
     } catch {
-      const portal = PORTAL_CATALOG.find((item) => item.id === portalId);
-      if (!portal) throw new Error("Portal not found");
-      const installedPortals = Array.from(new Set([...(settings.installedPortals || []), portalId]));
+      const portals = ids.map((id) => PORTAL_CATALOG.find((item) => item.id === id)).filter(Boolean);
+      if (portals.length !== ids.length) throw new Error("One or more portals were not found");
+      const installedPortals = Array.from(new Set([...(settings.installedPortals || []), ...ids]));
+      const modulePermissions = { ...(settings.modulePermissions || {}) };
+      ids.forEach((portalId) => {
+        modulePermissions[portalId] = Array.from(new Set([`${portalId}.read`, `${portalId}.manage`, "organization.shared.read"]));
+      });
       settings = {
         ...settings,
         installedPortals,
-        modules: Array.from(new Set([...(settings.modules || []), portalId])),
-        navigation: Array.from(new Set([...(settings.navigation || []), portalId])),
-        modulePermissions: {
-          ...(settings.modulePermissions || {}),
-          [portalId]: Array.from(new Set([`${portalId}.read`, `${portalId}.manage`, "organization.shared.read"])),
-        },
+        modules: Array.from(new Set([...(settings.modules || []), ...ids])),
+        navigation: Array.from(new Set([...(settings.navigation || []), ...ids])),
+        modulePermissions,
         onboardingComplete: true,
         updatedAt: new Date().toISOString(),
       };
       writeJson(SETTINGS_KEY, settings);
-      data = { ok: true, portal, settings };
+      data = { ok: true, portal: portals[0], portals, settings };
     }
     settings = data.settings;
+    selected.clear();
     render();
-    window.EnterpriseCore?.notify?.("Portal installed", data.portal?.title || portalId);
-    if (progress) progress.textContent = "Installation complete. You can open it now or install another portal.";
+    window.EnterpriseCore?.notify?.("Workspace app installed", `${ids.length} portal${ids.length === 1 ? "" : "s"} enabled`);
+    if (progress) progress.textContent = "Unified installation complete. Open the workspace or select more portals.";
   };
 
   document.addEventListener("DOMContentLoaded", () => {
     $("#portal-grid")?.addEventListener("click", (event) => {
-      const btn = event.target.closest("button[data-portal]");
-      if (!btn || btn.textContent.trim() === "Installed") return;
+      const check = event.target.closest("input[data-portal-check]");
+      if (check) {
+        toggleSelection(check.dataset.portalCheck, check.checked);
+        return;
+      }
+      const toggle = event.target.closest("button[data-portal-toggle]");
+      if (toggle) {
+        toggleSelection(toggle.dataset.portalToggle);
+        return;
+      }
+      const card = event.target.closest("[data-portal-card]");
+      if (card && !event.target.closest("a,button,input,label")) toggleSelection(card.dataset.portalCard);
+    });
+    $("#portal-select-core")?.addEventListener("click", selectCoreSet);
+    $("#portal-clear-selection")?.addEventListener("click", () => {
+      selected.clear();
+      render();
+    });
+    $("#portal-install-selected")?.addEventListener("click", (event) => {
+      const btn = event.currentTarget;
+      if (!selected.size) return;
       btn.disabled = true;
-      btn.textContent = "Installing...";
-      install(btn.dataset.portal).catch((err) => {
-        btn.disabled = false;
-        btn.textContent = "Install";
-        const progress = $("#portal-progress");
-        if (progress) progress.textContent = "Installation failed. Try again.";
-        window.EnterpriseCore?.notify?.("Install failed", err.message, "error");
-      });
+      btn.textContent = "Installing selected...";
+      install([...selected])
+        .catch((err) => {
+          const progress = $("#portal-progress");
+          if (progress) progress.textContent = "Installation failed. Try again.";
+          window.EnterpriseCore?.notify?.("Install failed", err.message, "error");
+        })
+        .finally(() => {
+          btn.textContent = "Install selected as one app";
+          renderBulkBar();
+        });
     });
     load().catch((err) => window.EnterpriseCore?.notify?.("Portal manager", err.message, "error"));
   });

@@ -94,18 +94,19 @@ module.exports = async (req, res) => {
       return sendJson(res, 200, { ok: true, settings: next });
     }
 
-    if (body.action === "install-portal") {
-      const portalId = safeString(body.portalId, 80);
-      const portal = PORTAL_CATALOG.find((item) => item.id === portalId);
-      if (!portal) return sendJson(res, 404, { ok: false, error: "Portal not found" });
+    if (body.action === "install-portal" || body.action === "install-portals") {
+      const requested = body.action === "install-portals" && Array.isArray(body.portalIds) ? body.portalIds : [body.portalId];
+      const portalIds = Array.from(new Set(requested.map((id) => safeString(id, 80)).filter(Boolean)));
+      const portals = portalIds.map((portalId) => PORTAL_CATALOG.find((item) => item.id === portalId)).filter(Boolean);
+      if (!portals.length || portals.length !== portalIds.length) return sendJson(res, 404, { ok: false, error: "One or more portals were not found" });
       if (settings.agreementAccepted !== true) return sendJson(res, 403, { ok: false, error: "Accept licensing terms before installing portals" });
-      const installedPortals = Array.from(new Set([...(settings.installedPortals || []), portalId]));
-      const modules = Array.from(new Set([...(settings.modules || []), portalId]));
-      const modulePermissions = {
-        ...(settings.modulePermissions || {}),
-        [portalId]: Array.from(new Set([`${portalId}.read`, `${portalId}.manage`, "organization.shared.read"])),
-      };
-      const navigation = Array.from(new Set([...(settings.navigation || []), portalId]));
+      const installedPortals = Array.from(new Set([...(settings.installedPortals || []), ...portalIds]));
+      const modules = Array.from(new Set([...(settings.modules || []), ...portalIds]));
+      const modulePermissions = { ...(settings.modulePermissions || {}) };
+      portalIds.forEach((portalId) => {
+        modulePermissions[portalId] = Array.from(new Set([`${portalId}.read`, `${portalId}.manage`, "organization.shared.read"]));
+      });
+      const navigation = Array.from(new Set([...(settings.navigation || []), ...portalIds]));
       const next = {
         ...settings,
         installedPortals,
@@ -116,8 +117,13 @@ module.exports = async (req, res) => {
         updatedAt: new Date().toISOString(),
       };
       await store.set(settingsKey, next);
-      await appendEvent(store, tenantId, "org.module.enabled", { portalId, title: portal.title, sharedWorkspace: true });
-      return sendJson(res, 200, { ok: true, portal, settings: next });
+      await appendEvent(store, tenantId, "org.modules.enabled", {
+        portalIds,
+        count: portalIds.length,
+        titles: portals.map((portal) => portal.title),
+        sharedWorkspace: true,
+      });
+      return sendJson(res, 200, { ok: true, portal: portals[0], portals, settings: next });
     }
 
     return sendJson(res, 400, { ok: false, error: "Unsupported org admin action" });

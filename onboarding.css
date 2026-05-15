@@ -90,6 +90,96 @@
   font-size: 12px;
 }
 
+.portal-manager-header {
+  align-items: flex-start;
+}
+
+.portal-manager-subtitle {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.portal-bulk-bar {
+  margin: 14px 18px 0;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid rgba(91, 214, 255, 0.18);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(0, 119, 255, 0.13), rgba(91, 214, 255, 0.055)),
+    rgba(255, 255, 255, 0.045);
+}
+
+.portal-bulk-bar strong,
+.portal-bulk-bar span {
+  display: block;
+}
+
+.portal-bulk-bar span {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.portal-bulk-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.portal-install-card {
+  position: relative;
+  display: grid;
+  align-content: start;
+  transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
+}
+
+.portal-install-card.is-selectable {
+  cursor: pointer;
+}
+
+.portal-install-card.is-selected {
+  border-color: rgba(91, 214, 255, 0.58);
+  background:
+    linear-gradient(180deg, rgba(0, 119, 255, 0.14), rgba(255, 255, 255, 0.045)),
+    rgba(255, 255, 255, 0.055);
+}
+
+.portal-install-card.is-installed {
+  opacity: 0.82;
+}
+
+.portal-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.portal-select-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  user-select: none;
+}
+
+.portal-select-control input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent-2);
+}
+
 .portal-feature-list {
   margin: 10px 0 0;
   padding-left: 18px;
@@ -332,6 +422,21 @@
   .portal-hub-grid,
   .module-shared-grid {
     gap: 10px;
+  }
+
+  .portal-bulk-bar {
+    margin: 10px 10px 0;
+    display: grid;
+  }
+
+  .portal-bulk-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .portal-bulk-actions .btn {
+    width: 100%;
+    min-height: 46px;
   }
 
   .portal-install-card,
