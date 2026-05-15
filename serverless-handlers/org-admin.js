@@ -15,7 +15,7 @@ const PORTAL_CATALOG = [
   { id: "finance", title: "Finance Module", href: moduleHref, description: "Finance summaries, payments, and reports.", features: ["Shared transactions", "Expense views", "Reports"] },
   { id: "pharmacy", title: "Pharmacy Module", href: moduleHref, description: "Pharmacy inventory and controlled operations.", features: ["Medicine stock", "Supplier control", "Shared inventory"] },
   { id: "inventory", title: "Inventory Module", href: moduleHref, description: "Stock, items, transfers, and availability.", features: ["Stock levels", "Transfers", "Availability"] },
-  { id: "assetwise", title: "AssetWise Module", href: moduleHref, externalUrl: "https://assert-management.lovable.app/", description: "Connected asset lifecycle and allocation.", features: ["Shared assets", "Asset lifecycle", "Allocation"] },
+  { id: "assetwise", title: "AssetWise Module", href: "https://assert-management.lovable.app/", external: true, externalUrl: "https://assert-management.lovable.app/", description: "Connected asset lifecycle and allocation.", features: ["Shared assets", "Asset lifecycle", "Allocation"] },
   { id: "logistics", title: "Logistics Module", href: moduleHref, description: "Dispatch, delivery, fleet, and tracking workflows.", features: ["Dispatch", "Tracking", "Delivery status"] },
   { id: "sales", title: "Sales Module", href: moduleHref, description: "Sales operations, customers, and performance.", features: ["Customers", "Sales activity", "Performance"] },
   { id: "school", title: "School Module", href: moduleHref, description: "School operations and administrative workflows.", features: ["Administration", "Departments", "Reports"] },
