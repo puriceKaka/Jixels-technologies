@@ -1,0 +1,111 @@
+.enterprise-livebar {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 80;
+  display: grid;
+  gap: 8px;
+  width: min(360px, calc(100vw - 28px));
+  pointer-events: none;
+}
+
+.enterprise-livebar > * {
+  pointer-events: auto;
+}
+
+.enterprise-status {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(5, 8, 18, 0.88);
+  color: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(10px);
+  font-size: 12px;
+}
+
+.enterprise-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #34d399;
+  box-shadow: 0 0 0 5px rgba(52, 211, 153, 0.12);
+}
+
+.enterprise-status.offline .enterprise-dot {
+  background: #fb7185;
+  box-shadow: 0 0 0 5px rgba(251, 113, 133, 0.12);
+}
+
+.enterprise-notices {
+  display: grid;
+  gap: 8px;
+}
+
+.enterprise-notice {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(5, 8, 18, 0.92);
+  color: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(10px);
+  animation: enterprise-in 160ms ease-out;
+}
+
+.enterprise-notice-title {
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 3px;
+}
+
+.enterprise-notice-body {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.enterprise-module-strip {
+  width: min(1180px, calc(100% - 40px));
+  margin: 12px auto 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.enterprise-module-chip {
+  flex: 0 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.82);
+  border-radius: 999px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+@keyframes enterprise-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 520px) {
+  .enterprise-livebar {
+    right: 10px;
+    bottom: 10px;
+  }
+
+  .enterprise-module-strip {
+    width: calc(100% - 20px);
+  }
+}

@@ -1,10 +1,10 @@
 (() => {
   "use strict";
 
-  const SESSION_LOCAL_KEY = "jixels_session_director_v1";
-  const SESSION_SESSION_KEY = "jixels_session_director_tmp_v1";
-  const DIRECTOR_ACCOUNT_KEY = "jixels_director_account_v1";
-  const API_ENABLED_KEY = "jixels_api_enabled_v1";
+  const SESSION_LOCAL_KEY = "enterprise_session_director_v1";
+  const SESSION_SESSION_KEY = "enterprise_session_director_tmp_v1";
+  const DIRECTOR_ACCOUNT_KEY = "enterprise_director_account_v1";
+  const API_ENABLED_KEY = "enterprise_api_enabled_v1";
 
   const $ = (selector, root = document) => root.querySelector(selector);
 

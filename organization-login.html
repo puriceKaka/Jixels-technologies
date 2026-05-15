@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Organization Login • MAPPHEX</title>
+    <link rel="icon" href="images/enterprise-icon-192.png" type="image/png" />
+    <link rel="stylesheet" href="director.css" />
+    <link rel="stylesheet" href="management.css" />
+    <link rel="stylesheet" href="onboarding.css" />
+  </head>
+  <body data-page="organization-login">
+    <main class="auth-shell org-register-shell">
+      <section class="auth-card org-register-card">
+        <div class="auth-header">
+          <img class="logo-img" src="images/enterprise-logo.png" alt="" />
+          <h1>Organization Login</h1>
+          <p>Access your centralized MAPPHEX Portal Hub with your organization credentials.</p>
+        </div>
+        <form id="organization-login-form" class="auth-form">
+          <label class="field"><span>Organization ID / Company Email</span><input name="identifier" required autocomplete="username" placeholder="ORG-ABC123 or company@example.com" /></label>
+          <label class="field"><span>Password</span><input name="password" type="password" required minlength="6" /></label>
+          <label class="remember-row"><input name="remember" type="checkbox" checked /> <span>Keep me signed in on this device</span></label>
+          <button class="btn primary" type="submit">Access Portal Hub</button>
+          <p id="organization-login-result" class="form-error"></p>
+        </form>
+        <div class="auth-footer"><span class="muted">Not registered yet?</span><a class="btn primary" href="organization-register.html">Register Organization</a><a class="btn" href="index.html?logout=1">Public Site</a></div>
+      </section>
+    </main>
+    <script src="enterprise-core.js"></script>
+    <script src="organization-login.js?v=4"></script>
+  </body>
+</html>

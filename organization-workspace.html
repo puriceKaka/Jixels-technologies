@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MAPPHEX Portal Hub</title>
+    <link rel="icon" href="images/enterprise-icon-192.png" type="image/png" />
+    <link rel="stylesheet" href="director.css" />
+    <link rel="stylesheet" href="management.css" />
+    <link rel="stylesheet" href="onboarding.css" />
+  </head>
+  <body data-page="organization-workspace" class="portal-hub-page">
+    <header class="topbar portal-hub-topbar">
+      <div class="brand">
+        <img id="organization-logo" class="logo-img" src="images/enterprise-logo.png" alt="" />
+        <div>
+          <div id="workspace-title" class="brand-title">MAPPHEX Portal Hub</div>
+          <div id="workspace-subtitle" class="brand-subtitle muted">Centralized organization workspace</div>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <span id="subscription-status" class="badge">Subscription</span>
+        <span id="notification-badge" class="badge">0 notifications</span>
+        <a id="manage-portals-link" class="btn" href="portal-selection.html">Manage Modules</a>
+        <a id="admin-link" class="btn" href="organization-admin.html">Settings</a>
+        <a class="btn" href="index.html?logout=1">Logout</a>
+      </div>
+    </header>
+
+    <main class="layout onboarding-layout portal-hub-layout">
+      <section class="portal-hub-hero panel">
+        <div>
+          <div class="eyebrow">Organization Portal Hub</div>
+          <h1 id="portal-hub-heading">MAPPHEX Workspace</h1>
+          <p id="portal-hub-summary" class="muted">Installed modules, quick access, notifications, and organization controls.</p>
+        </div>
+        <div class="portal-hub-profile">
+          <div class="profile-avatar" aria-hidden="true">M</div>
+          <div>
+            <strong id="profile-name">Organization Admin</strong>
+            <span id="profile-email" class="muted">Signed in securely</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="portal-hub-widgets">
+        <article class="kpi"><div class="kpi-label">Installed Modules</div><div id="hub-kpi-portals" class="kpi-value">0</div><div class="kpi-foot muted">Active access tiles</div></article>
+        <article class="kpi"><div class="kpi-label">Branches</div><div id="hub-kpi-branches" class="kpi-value">0</div><div class="kpi-foot muted">Organization scope</div></article>
+        <article class="kpi"><div class="kpi-label">Departments</div><div id="hub-kpi-departments" class="kpi-value">0</div><div class="kpi-foot muted">Role groups</div></article>
+        <article class="kpi"><div class="kpi-label">Session</div><div class="kpi-value">Secure</div><div id="hub-kpi-session" class="kpi-foot muted">Tenant isolated</div></article>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Installed Portals</h2>
+          <div class="panel-actions">
+            <input id="portal-search" type="search" placeholder="Search portals..." />
+          </div>
+        </div>
+        <div id="installed-portals" class="portal-hub-grid"></div>
+        <div id="portal-empty" class="empty-state" hidden>No installed portals match your search.</div>
+      </section>
+    </main>
+    <script src="enterprise-core.js"></script>
+    <script src="kv-client.js"></script>
+    <script src="enterprise-store.js"></script>
+    <script src="organization-workspace.js?v=6"></script>
+  </body>
+</html>

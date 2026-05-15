@@ -1,7 +1,10 @@
 const { sendJson, readJsonBody } = require("../_lib/http");
 const { getStore } = require("../_lib/kv-store");
+const { getTenantId, scopeTenantKey } = require("../_lib/tenant");
+const { appendEvent } = require("../_lib/events");
+const { assertIdempotent, rateLimit, safeString } = require("../_lib/security");
 
-const ERP_KEY = "jixels_erp_v1";
+const ERP_KEY = "enterprise_erp_v1";
 const BRANCH_COUNT = 47;
 
 const isoNow = () => new Date().toISOString();
@@ -123,7 +126,7 @@ module.exports = async (req, res) => {
     res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
     res.setHeader("Vary", "Origin");
     res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type,X-Asset-Sync-Token");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type,X-Asset-Sync-Token,X-Tenant-ID");
 
     if (req.method === "OPTIONS") {
       res.statusCode = 204;
@@ -133,13 +136,17 @@ module.exports = async (req, res) => {
     if (req.method !== "POST") return sendJson(res, 405, { ok: false, error: "Method not allowed" });
 
     const body = await readJsonBody(req);
+    rateLimit(req, { scope: "assets-sync", limit: 120, windowMs: 60_000 });
+    assertIdempotent(req, body);
     const token = String(req.headers["x-asset-sync-token"] || body?.token || "").trim();
     if (process.env.ASSET_SYNC_TOKEN && token !== process.env.ASSET_SYNC_TOKEN) {
       return sendJson(res, 401, { ok: false, error: "Unauthorized" });
     }
 
     const store = getStore();
-    const erpRaw = await store.get(ERP_KEY);
+    const tenantId = getTenantId(req, body);
+    const scopedErpKey = scopeTenantKey(tenantId, ERP_KEY);
+    const erpRaw = await store.get(scopedErpKey);
     const erp = erpRaw && typeof erpRaw === "object" && Array.isArray(erpRaw.branches) ? erpRaw : makeDefaultErp();
     erp.branches = Array.isArray(erp.branches) ? erp.branches : [];
 
@@ -156,7 +163,7 @@ module.exports = async (req, res) => {
       const branch = normalizeBranch(findBranch(erp, item));
       if (!branch) {
         skipped += 1;
-        errors.push(`Branch not found for ${item.branchId || item.branchName || "assignment"}.`);
+      errors.push(`Branch not found for ${safeString(item.branchId || item.branchName || "assignment", 120)}.`);
         continue;
       }
       const serial = itemSerial(item);
@@ -178,8 +185,9 @@ module.exports = async (req, res) => {
     }
 
     erp.lastUpdated = isoNow();
-    await store.set(ERP_KEY, erp);
-    return sendJson(res, 200, { ok: true, imported, skipped, errors, key: ERP_KEY, updatedAt: erp.lastUpdated });
+    await store.set(scopedErpKey, erp);
+    await appendEvent(store, tenantId, "assets.synced", { imported, skipped });
+    return sendJson(res, 200, { ok: true, imported, skipped, errors, key: scopedErpKey, tenantId, updatedAt: erp.lastUpdated });
   } catch (err) {
     const status = Number(err?.statusCode || 500) || 500;
     return sendJson(res, status, { ok: false, error: status >= 500 ? "Server error" : String(err?.message || "Invalid request") });

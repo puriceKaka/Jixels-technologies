@@ -3,12 +3,12 @@
 
   const PAGE = document.body?.dataset?.page || "";
 
-  const BRANCH_ACCOUNTS_KEY = "jixels_branch_accounts_v1";
-  const AGENT_ACCOUNTS_KEY = "jixels_agent_accounts_v1";
-  const TEAMLEADER_ACCOUNTS_KEY = "jixels_teamleader_accounts_v1";
-  const DEPT_ACCOUNTS_KEY = "jixels_departments_accounts_v1";
-  const DIRECTOR_ACCOUNT_KEY = "jixels_director_account_v1";
-  const DATA_KEY = "jixels_erp_v1";
+  const BRANCH_ACCOUNTS_KEY = "enterprise_branch_accounts_v1";
+  const AGENT_ACCOUNTS_KEY = "enterprise_agent_accounts_v1";
+  const TEAMLEADER_ACCOUNTS_KEY = "enterprise_teamleader_accounts_v1";
+  const DEPT_ACCOUNTS_KEY = "enterprise_departments_accounts_v1";
+  const DIRECTOR_ACCOUNT_KEY = "enterprise_director_account_v1";
+  const DATA_KEY = "enterprise_erp_v1";
   const BRANCH_COUNT = 47;
 
   const $ = (selector, root = document) => root.querySelector(selector);
@@ -22,7 +22,7 @@
   };
 
   const loadJson = (key, fallback) => {
-    const store = window.JixelsStore || null;
+    const store = window.EnterpriseStore || null;
     if (store?.getJson) {
       const value = store.getJson(key, undefined);
       if (typeof value !== "undefined" && value !== null) return value;
@@ -33,7 +33,7 @@
   };
 
   const saveJson = (key, value) => {
-    const store = window.JixelsStore || null;
+    const store = window.EnterpriseStore || null;
     if (store?.setJson) {
       store.setJson(key, value);
       localStorage.setItem(key, JSON.stringify(value));
@@ -139,7 +139,7 @@
   const init = async () => {
     if (PAGE !== "branch-register") return;
 
-    await window.JixelsStore?.bootstrap?.([
+    await window.EnterpriseStore?.bootstrap?.([
       BRANCH_ACCOUNTS_KEY,
       AGENT_ACCOUNTS_KEY,
       TEAMLEADER_ACCOUNTS_KEY,

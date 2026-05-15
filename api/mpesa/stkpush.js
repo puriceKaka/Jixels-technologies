@@ -11,7 +11,7 @@ module.exports = async (req, res) => {
 
     const amount = Math.round(Number(body.amount || 0));
     const phone = normalizeMsisdn(body.phoneNumber || body.phone || "");
-    const accountReference = String(body.accountReference || "Jixels").slice(0, 32);
+    const accountReference = String(body.accountReference || "MAPPHEX").slice(0, 32);
     const transactionDesc = String(body.transactionDesc || "Payment").slice(0, 64);
 
     if (!Number.isFinite(amount) || amount <= 0) return sendJson(res, 400, { ok: false, error: "Invalid amount" });
@@ -56,7 +56,7 @@ module.exports = async (req, res) => {
 
     // Store a small audit trail so Finance can reconcile later.
     const store = getStore();
-    const logKey = "jixels_mpesa_stk_requests_v1";
+    const logKey = "enterprise_mpesa_stk_requests_v1";
     const current = (await store.get(logKey)) || [];
     const arr = Array.isArray(current) ? current : [];
     arr.push({

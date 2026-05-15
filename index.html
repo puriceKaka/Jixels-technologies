@@ -3,184 +3,309 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Jixels Technologies • Portal Hub</title>
+    <title>MAPPHEX | Enterprise SaaS Ecosystem</title>
+    <meta
+      name="description"
+      content="MAPPHEX is a premium enterprise SaaS ecosystem for multi-organization onboarding, secure business environments, modular tools, analytics, and operations."
+    />
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="icon" href="images/jixels-icon-192.png" type="image/png" />
-    <link rel="apple-touch-icon" href="images/jixels-icon-192.png" />
-    <meta name="theme-color" content="#0b1020" />
+    <link rel="icon" href="images/enterprise-icon-192.png" type="image/png" />
+    <link rel="apple-touch-icon" href="images/enterprise-icon-192.png" />
+    <meta name="theme-color" content="#06101f" />
     <link rel="stylesheet" href="director.css" />
     <link rel="stylesheet" href="home.css" />
   </head>
-  <body data-page="home">
-    <header class="topbar">
-      <div class="brand">
-        <img class="logo-img" src="images/jixels-logo.png" alt="" />
-        <div>
-          <div class="brand-title">Jixels Technologies</div>
-          <div class="brand-subtitle muted">ERP Portal Hub</div>
-        </div>
-      </div>
+  <body data-page="home" class="mapphex-home">
+    <header class="site-nav" data-nav>
+      <a class="site-brand" href="#top" aria-label="MAPPHEX home">
+        <img class="logo-img" src="images/enterprise-logo.png" alt="MAPPHEX logo" />
+        <span>MAPPHEX</span>
+      </a>
 
-      <div class="topbar-actions">
-        <a class="btn" href="director-login.html">Director</a>
-        <a class="btn" href="branch-login.html">Branch</a>
-        <a class="btn" href="teamleader-login.html">Team Leader</a>
-        <a class="btn primary" href="agent-login.html">Agent</a>
-        <a class="btn" href="departments.html">Departments</a>
+      <button class="nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false" data-nav-toggle>
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <nav class="site-links" aria-label="Main navigation" data-nav-menu>
+        <a href="#about">About</a>
+        <a href="#services">Services</a>
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#security">Security</a>
+        <a href="#contact">Contact</a>
+      </nav>
+
+      <div class="site-actions">
+        <a class="btn ghost" href="organization-login.html">Organization Login</a>
+        <a class="btn primary" href="organization-register.html">Register Organization</a>
       </div>
     </header>
 
-    <main class="layout home-layout">
-      <section class="panel hero" aria-label="Welcome">
-        <div class="hero-grid">
-          <div class="hero-copy">
-            <h1 class="hero-title">Welcome</h1>
-            <p class="muted hero-subtitle">
-              Choose a portal to continue. Agents sell phones, branches manage inventory, and Head Office tracks everything in realtime.
-            </p>
+    <main id="top">
+      <section class="site-hero">
+        <div class="hero-aura hero-aura-left" aria-hidden="true"></div>
+        <div class="hero-aura hero-aura-right" aria-hidden="true"></div>
 
-            <div class="hero-actions">
-              <a class="btn primary" href="#portals">Open portals</a>
-              <a class="btn" href="#phones">View phones</a>
-            </div>
-
+        <div class="site-hero-copy reveal">
+          <div class="eyebrow">Premium enterprise SaaS for modern organizations</div>
+          <h1>One elegant operating platform for every modern business.</h1>
+          <p>
+            MAPPHEX helps companies, pharmacies, schools, logistics providers, retailers, agencies, and multi-branch
+            enterprises register, subscribe, activate the tools they need, and operate secure cloud environments with confidence.
+          </p>
+          <div class="hero-actions">
+            <a class="btn primary large" href="organization-register.html">Register Organization</a>
+            <a class="btn large" href="#services">Explore Services</a>
+            <a class="btn ghost large" href="#pricing">Get Started</a>
           </div>
+          <div class="hero-metrics" aria-label="MAPPHEX platform metrics">
+            <div>
+              <strong class="count-up" data-count="1200">0</strong>
+              <span>Organizations ready</span>
+            </div>
+            <div>
+              <strong class="count-up" data-count="45000">0</strong>
+              <span>Active users supported</span>
+            </div>
+            <div>
+              <strong class="count-up" data-count="15">0</strong>
+              <span>Business modules</span>
+            </div>
+            <div>
+              <strong>Live</strong>
+              <span>Realtime analytics</span>
+            </div>
+          </div>
+        </div>
 
-          <div class="hero-visual" aria-hidden="true">
-            <div class="phone-stack">
-              <img class="phone-img phone-img-1" src="images/phone-01.svg" alt="" />
-              <img class="phone-img phone-img-2" src="images/phone-02.svg" alt="" />
-              <img class="phone-img phone-img-3" src="images/phone-03.svg" alt="" />
+        <div class="hero-visual reveal" aria-label="MAPPHEX enterprise onboarding preview">
+          <div class="dashboard-frame">
+            <div class="dashboard-topbar">
+              <div>
+                <span class="window-dot"></span>
+                <span class="window-dot"></span>
+                <span class="window-dot"></span>
+              </div>
+              <span>Enterprise Onboarding Preview</span>
+            </div>
+            <div class="dashboard-body">
+              <aside class="preview-sidebar">
+                <span class="preview-logo">M</span>
+                <span class="preview-line active"></span>
+                <span class="preview-line"></span>
+                <span class="preview-line"></span>
+                <span class="preview-line short"></span>
+              </aside>
+              <div class="preview-main">
+                <div class="preview-kpis">
+                  <article><span>Registration</span><strong>01</strong></article>
+                  <article><span>Agreement</span><strong>02</strong></article>
+                  <article><span>Workspace</span><strong>03</strong></article>
+                </div>
+                <div class="preview-grid">
+                  <div class="preview-chart">
+                    <span style="height: 38%"></span>
+                    <span style="height: 62%"></span>
+                    <span style="height: 46%"></span>
+                    <span style="height: 78%"></span>
+                    <span style="height: 58%"></span>
+                    <span style="height: 88%"></span>
+                    <span style="height: 66%"></span>
+                  </div>
+                  <div class="preview-activity">
+                    <div><strong>Create account</strong><span>Organization profile and secure credentials</span></div>
+                    <div><strong>Accept terms</strong><span>Licensing, subscription, and security policies</span></div>
+                    <div><strong>Select tools</strong><span>Enable only the business modules required</span></div>
+                    <div><strong>Open environment</strong><span>Access the organization environment securely</span></div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section class="panel" id="portals" aria-label="Portals">
-        <div class="panel-header">
-          <h2>All Portals</h2>
-          <div class="panel-actions muted">Fast access</div>
+      <section id="about" class="site-section split-section reveal">
+        <div>
+          <div class="eyebrow">About MAPPHEX</div>
+          <h2>Designed for serious organizations that need calm, powerful operations.</h2>
         </div>
+        <div>
+          <p>
+            MAPPHEX brings registration, licensing, branch structures, staff access, analytics, documents, and business
+            workflows into one polished SaaS ecosystem. Every organization gets its own secure operating environment
+            while keeping the experience simple enough for small teams and strong enough for enterprise scale.
+          </p>
+          <div class="trust-row">
+            <span>Tenant isolation</span>
+            <span>Realtime workflows</span>
+            <span>Modular tools</span>
+          </div>
+        </div>
+      </section>
 
-        <div class="portal-grid">
-          <article class="portal-card">
-            <div class="portal-card-top">
-              <div class="portal-icon" aria-hidden="true">D</div>
-              <div>
-                <div class="portal-title">Director Portal</div>
-                <div class="muted portal-desc">Company overview, reports, analytics.</div>
-              </div>
-            </div>
-            <div class="portal-actions">
-              <a class="btn primary" href="director-login.html">Login</a>
-              <a class="btn" href="director-register.html">Register</a>
-            </div>
+      <section id="services" class="site-section reveal">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Services</div>
+            <h2>Professional onboarding, licensing, hosting, and operations setup.</h2>
+          </div>
+          <p>
+            MAPPHEX keeps the public experience clean while giving organizations a professional path into secure,
+            scalable operations.
+          </p>
+        </div>
+        <div class="premium-grid four">
+          <article class="premium-card">
+            <span class="card-icon">01</span>
+            <h3>Fast onboarding</h3>
+            <p>Create organization profiles, secure accounts, environment IDs, and business access without complicated setup.</p>
           </article>
-
-          <article class="portal-card">
-            <div class="portal-card-top">
-              <div class="portal-icon" aria-hidden="true">B</div>
-              <div>
-                <div class="portal-title">Branch Portal</div>
-                <div class="muted portal-desc">Inventory entry and sold-phones tracking.</div>
-              </div>
-            </div>
-            <div class="portal-actions">
-              <a class="btn primary" href="branch-login.html">Login</a>
-              <a class="btn" href="branch-register.html">Register</a>
-            </div>
+          <article class="premium-card">
+            <span class="card-icon">02</span>
+            <h3>Modular operations</h3>
+            <p>Enable only the business tools each organization needs, from finance and HR to pharmacy and logistics.</p>
           </article>
-
-          <article class="portal-card">
-            <div class="portal-card-top">
-              <div class="portal-icon" aria-hidden="true">A</div>
-              <div>
-                <div class="portal-title">Agent Portal</div>
-                <div class="muted portal-desc">Sell phones and complete transactions.</div>
-              </div>
-            </div>
-            <div class="portal-actions">
-              <a class="btn primary" href="agent-login.html">Login</a>
-              <a class="btn" href="agent-register.html">Register</a>
-            </div>
+          <article class="premium-card">
+            <span class="card-icon">03</span>
+            <h3>Secure environments</h3>
+            <p>Protect organization data with tenant-aware access, role permissions, audit trails, and guarded workflows.</p>
           </article>
-
-          <article class="portal-card">
-            <div class="portal-card-top">
-              <div class="portal-icon" aria-hidden="true">T</div>
-              <div>
-                <div class="portal-title">Team Leader Portal</div>
-                <div class="muted portal-desc">Allocate branch phones to agents by IMEI.</div>
-              </div>
-            </div>
-            <div class="portal-actions">
-              <a class="btn primary" href="teamleader-login.html">Login</a>
-              <a class="btn" href="teamleader-register.html">Register</a>
-            </div>
-          </article>
-
-          <article class="portal-card">
-            <div class="portal-card-top">
-              <div class="portal-icon" aria-hidden="true">P</div>
-              <div>
-                <div class="portal-title">Departments Portal</div>
-                <div class="muted portal-desc">HR, Finance, Operations, Sales, Admin.</div>
-              </div>
-            </div>
-            <div class="portal-actions">
-              <a class="btn primary" href="departments.html">Login</a>
-              <a class="btn" href="departments-register.html">Register</a>
-              <a class="btn" href="departments-admin.html">Admin</a>
-            </div>
-          </article>
-
-          <article class="portal-card">
-            <div class="portal-card-top">
-              <div class="portal-icon" aria-hidden="true">M</div>
-              <div>
-                <div class="portal-title">Admin Portal</div>
-                <div class="muted portal-desc">Approve accounts and manage ERP data.</div>
-              </div>
-            </div>
-            <div class="portal-actions">
-              <a class="btn primary" href="departments.html?role=admin">Login</a>
-              <a class="btn" href="departments-register.html?role=admin">Register</a>
-            </div>
+          <article class="premium-card">
+            <span class="card-icon">04</span>
+            <h3>Realtime visibility</h3>
+            <p>Keep live views, notifications, activities, inventory changes, and operational status synchronized.</p>
           </article>
         </div>
       </section>
 
-      <section class="panel" id="phones" aria-label="Phones">
-        <div class="panel-header">
-          <h2>Phones</h2>
-          <div class="panel-actions muted">Phone gallery</div>
+      <section id="features" class="site-section reveal">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Features</div>
+            <h2>Flexible enough for many industries. Structured enough for scale.</h2>
+          </div>
         </div>
+        <div class="solution-strip">
+          <article><strong>Companies</strong><span>Departments, staff, reports, operations</span></article>
+          <article><strong>Pharmacies</strong><span>Inventory, sales, suppliers, branches</span></article>
+          <article><strong>Schools</strong><span>Admissions, finance, staff, reporting</span></article>
+          <article><strong>Logistics</strong><span>Orders, tracking, dispatch, analytics</span></article>
+          <article><strong>Retail Shops</strong><span>Sales, stock, customers, documents</span></article>
+          <article><strong>Warehouses</strong><span>Storage, movement, audits, alerts</span></article>
+        </div>
+      </section>
 
-        <div class="phones-grid">
-          <article class="phone-card">
-            <img src="https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=640&q=80" alt="Samsung Galaxy phone" />
-            <div class="phone-meta">
-              <div class="phone-name">Samsung Galaxy S Series</div>
-              <div class="muted">128GB • 5G • Dual SIM</div>
-            </div>
+      <section class="site-section multi-org-section reveal">
+        <div class="tenant-visual" aria-hidden="true">
+          <div class="tenant-core">MAPPHEX</div>
+          <span style="--x: 16%; --y: 22%">Clinic</span>
+          <span style="--x: 70%; --y: 18%">Retail</span>
+          <span style="--x: 22%; --y: 72%">School</span>
+          <span style="--x: 72%; --y: 68%">Logistics</span>
+        </div>
+        <div>
+          <div class="eyebrow">Multi-Organization Support</div>
+          <h2>Each business gets a dedicated environment without losing platform consistency.</h2>
+          <p>
+            Organization managers handle branches, departments, staff, enabled tools, and workflows independently. The
+            environment model keeps business data separated, permissions focused, and operational modules easy to expand.
+          </p>
+          <div class="feature-list">
+            <span>Organization IDs</span>
+            <span>Workspace routing</span>
+            <span>Branch structures</span>
+            <span>Role permissions</span>
+            <span>Subscription controls</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="security" class="site-section analytics-section reveal">
+        <div>
+          <div class="eyebrow">Analytics & Security</div>
+          <h2>Clear insight, protected workflows, and operational resilience.</h2>
+          <p>
+            MAPPHEX is shaped around secure registration, licensing acceptance, tenant-aware operations, audit-ready
+            events, and a clean path from public onboarding to private organization environments.
+          </p>
+        </div>
+        <div class="security-grid">
+          <article><strong>Realtime visibility</strong><span>Live activity, operations status, and notifications.</span></article>
+          <article><strong>Data protection</strong><span>Role-aware access, isolated scopes, secure files, and validation.</span></article>
+          <article><strong>Audit trails</strong><span>Track important actions, account changes, and environment events.</span></article>
+          <article><strong>Recovery ready</strong><span>Backup-aware structure, graceful errors, and offline-safe assets.</span></article>
+        </div>
+      </section>
+
+      <section id="pricing" class="site-section reveal">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Subscription Plans</div>
+            <h2>Start lean, then scale modules and support as operations grow.</h2>
+          </div>
+        </div>
+        <div class="pricing-grid">
+          <article class="pricing-card">
+            <span>Starter</span>
+            <h3>Small Teams</h3>
+            <p>Lightweight setup for shops, startups, agencies, and service providers.</p>
+            <a class="btn ghost" href="organization-register.html">Choose Starter</a>
           </article>
-          <article class="phone-card">
-            <img src="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=640&q=80" alt="iPhone model" />
-            <div class="phone-meta">
-              <div class="phone-name">iPhone Pro Series</div>
-              <div class="muted">256GB • Pro Camera</div>
-            </div>
+          <article class="pricing-card highlight">
+            <span>Business</span>
+            <h3>Growing Operations</h3>
+            <p>Multi-branch modules, staff access, reporting, support packages, and business workflows.</p>
+            <a class="btn primary" href="organization-register.html">Choose Business</a>
           </article>
-          <article class="phone-card">
-            <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=640&q=80" alt="Android phone models" />
-            <div class="phone-meta">
-              <div class="phone-name">Android Flagship Models</div>
-              <div class="muted">AI Camera • Android</div>
-            </div>
+          <article class="pricing-card">
+            <span>Enterprise</span>
+            <h3>Large Organizations</h3>
+            <p>Advanced modules, custom onboarding, enhanced security, integrations, and dedicated support.</p>
+            <a class="btn ghost" href="organization-register.html">Talk to Support</a>
           </article>
+        </div>
+      </section>
+
+      <section id="contact" class="site-section contact-section reveal">
+        <div>
+          <div class="eyebrow">Contact</div>
+          <h2>Bring your organization into the MAPPHEX ecosystem.</h2>
+          <p>
+            Register your organization, review the licensing and subscription terms, activate the tools you need, and
+            open a polished operations environment built for long-term growth.
+          </p>
+        </div>
+        <div class="contact-panel">
+          <a class="btn primary large" href="organization-register.html">Register Organization</a>
+          <a class="btn large" href="organization-login.html">Organization Login</a>
+          <a class="support-link" href="mailto:support@mapphex.com">support@mapphex.com</a>
         </div>
       </section>
     </main>
+
+    <footer class="site-footer">
+      <div>
+        <a class="site-brand footer-brand" href="#top" aria-label="MAPPHEX home">
+          <img class="logo-img" src="images/enterprise-logo.png" alt="MAPPHEX logo" />
+          <span>MAPPHEX</span>
+        </a>
+        <p>Premium enterprise SaaS onboarding, module management, security, hosting, and support.</p>
+      </div>
+      <div class="footer-links">
+        <a href="#about">About</a>
+        <a href="#services">Services</a>
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#security">Security</a>
+        <a href="#contact">Support</a>
+      </div>
+    </footer>
+
+    <script src="enterprise-core.js"></script>
+    <script src="home.js?v=3"></script>
     <script src="pwa.js"></script>
   </body>
 </html>

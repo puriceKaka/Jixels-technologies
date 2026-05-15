@@ -3,9 +3,9 @@
 
   const PAGE = document.body?.dataset?.page || "";
 
-  const SESSION_LOCAL_KEY = "jixels_session_agent_v1";
-  const SESSION_SESSION_KEY = "jixels_session_agent_tmp_v1";
-  const AGENT_ACCOUNTS_KEY = "jixels_agent_accounts_v1";
+  const SESSION_LOCAL_KEY = "enterprise_session_agent_v1";
+  const SESSION_SESSION_KEY = "enterprise_session_agent_tmp_v1";
+  const AGENT_ACCOUNTS_KEY = "enterprise_agent_accounts_v1";
 
   const $ = (selector, root = document) => root.querySelector(selector);
 
@@ -18,7 +18,7 @@
   };
 
   const loadJson = (key, fallback) => {
-    const store = window.JixelsStore || null;
+    const store = window.EnterpriseStore || null;
     if (store?.getJson) {
       const value = store.getJson(key, undefined);
       if (typeof value !== "undefined" && value !== null) return value;
@@ -102,7 +102,7 @@
   const init = async () => {
     if (PAGE !== "agent-login") return;
 
-    await window.JixelsStore?.bootstrap?.([AGENT_ACCOUNTS_KEY]);
+    await window.EnterpriseStore?.bootstrap?.([AGENT_ACCOUNTS_KEY]);
 
     const session = getSession();
     if (session?.role === "agent" && session?.branchId) {
@@ -131,8 +131,8 @@
       const inputId = String(identifier.value || "").trim().toLowerCase();
       const inputPassword = String(password.value || "");
 
-      await window.JixelsStore?.bootstrap?.([AGENT_ACCOUNTS_KEY]);
-      await window.JixelsStore?.refresh?.([AGENT_ACCOUNTS_KEY]);
+      await window.EnterpriseStore?.bootstrap?.([AGENT_ACCOUNTS_KEY]);
+      await window.EnterpriseStore?.refresh?.([AGENT_ACCOUNTS_KEY]);
       const latestAccounts = loadAgentAccounts();
       const account =
         latestAccounts.find(

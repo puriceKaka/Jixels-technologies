@@ -3,23 +3,23 @@
 
   const PAGE = document.body?.dataset?.page || "";
 
-  const SESSION_KEY = "jixels_departments_session_v1";
-  const ACCOUNTS_KEY = "jixels_departments_accounts_v1";
-  const ERP_KEY = "jixels_erp_v1";
-  const HR_KEY = "jixels_hr_v1";
-  const BRANCH_ACCOUNTS_KEY = "jixels_branch_accounts_v1";
-  const AGENT_ACCOUNTS_KEY = "jixels_agent_accounts_v1";
-  const TEAMLEADER_ACCOUNTS_KEY = "jixels_teamleader_accounts_v1";
-  const DIRECTOR_ACCOUNT_KEY = "jixels_director_account_v1";
-  const AUDIT_KEY = "jixels_audit_v1";
+  const SESSION_KEY = "enterprise_departments_session_v1";
+  const ACCOUNTS_KEY = "enterprise_departments_accounts_v1";
+  const ERP_KEY = "enterprise_erp_v1";
+  const HR_KEY = "enterprise_hr_v1";
+  const BRANCH_ACCOUNTS_KEY = "enterprise_branch_accounts_v1";
+  const AGENT_ACCOUNTS_KEY = "enterprise_agent_accounts_v1";
+  const TEAMLEADER_ACCOUNTS_KEY = "enterprise_teamleader_accounts_v1";
+  const DIRECTOR_ACCOUNT_KEY = "enterprise_director_account_v1";
+  const AUDIT_KEY = "enterprise_audit_v1";
   const AUDIT_MAX = 1200;
-  const NOTIFY_KEY = "jixels_notify_v1";
-  const NOTIFY_SEEN_KEY = "jixels_notify_seen_v1";
-  const SMS_OUTBOX_KEY = "jixels_sms_outbox_v1";
+  const NOTIFY_KEY = "enterprise_notify_v1";
+  const NOTIFY_SEEN_KEY = "enterprise_notify_seen_v1";
+  const SMS_OUTBOX_KEY = "enterprise_sms_outbox_v1";
   const SMS_OUTBOX_MAX = 800;
-  const API_ENABLED_KEY = "jixels_api_enabled_v1";
-  const DIRECTOR_SESSION_LOCAL_KEY = "jixels_session_director_v1";
-  const DIRECTOR_SESSION_SESSION_KEY = "jixels_session_director_tmp_v1";
+  const API_ENABLED_KEY = "enterprise_api_enabled_v1";
+  const DIRECTOR_SESSION_LOCAL_KEY = "enterprise_session_director_v1";
+  const DIRECTOR_SESSION_SESSION_KEY = "enterprise_session_director_tmp_v1";
 
   const $ = (sel, root = document) => root.querySelector(sel);
 
@@ -33,7 +33,7 @@
 
   const getStore = () => {
     try {
-      return window.JixelsStore || null;
+      return window.EnterpriseStore || null;
     } catch {
       return null;
     }
@@ -278,7 +278,7 @@
     const time = dt.toLocaleTimeString();
     const year = String(dt.getFullYear());
     const amt = Number(amountKes || 0) || 0;
-    return `Jixels Technologies: You have received KES ${formatInt(amt)}. Date: ${date}, Time: ${time}, Year: ${year}.`;
+    return `MAPPHEX: You have received KES ${formatInt(amt)}. Date: ${date}, Time: ${time}, Year: ${year}.`;
   };
 
   const normalizeRole = (role) => String(role || "").toLowerCase();
@@ -1018,7 +1018,7 @@
       reportDocBtn.addEventListener("click", safe("dept_report_download_word", () => {
         const html = expandDetailsForExport(ensureHtml());
         if (!html) return;
-        const filename = `${filenameBase || "jixels-report"}-${today}.doc`;
+        const filename = `${filenameBase || "enterprise-report"}-${today}.doc`;
         downloadWordDocFile(filename, html, title || "Report");
         audit("report_export_word", { title: String(title || "Report"), filename });
       }));
@@ -1819,7 +1819,7 @@
 
     const reportApi = initDeptReportCenter({
       title: "HR Department Report",
-      filenameBase: "jixels-hr-report",
+      filenameBase: "enterprise-hr-report",
       buildHtml: buildHRReportHtml,
     });
 
@@ -2434,7 +2434,7 @@
 
     initDeptReportCenter({
       title: "Finance Department Report",
-      filenameBase: "jixels-finance-report",
+      filenameBase: "enterprise-finance-report",
       buildHtml: buildFinanceReportHtml,
     });
 
@@ -2678,7 +2678,7 @@
 
     initDeptReportCenter({
       title: `${roleLabel} Department Report`,
-      filenameBase: `jixels-${normalizeRole(role)}-report`,
+      filenameBase: `enterprise-${normalizeRole(role)}-report`,
       buildHtml: buildOpsSalesReportHtml,
     });
 
@@ -3034,7 +3034,7 @@
         smsOutbox: loadJson(SMS_OUTBOX_KEY, []),
       };
       downloadText(
-        `jixels-data-export-${new Date().toISOString().slice(0, 10)}.json`,
+        `enterprise-data-export-${new Date().toISOString().slice(0, 10)}.json`,
         JSON.stringify(payload, null, 2),
         "application/json;charset=utf-8",
       );
@@ -3042,8 +3042,8 @@
     };
 
     const deleteAllData = async () => {
-      const phrase = prompt("Type DELETE ALL JIXELS DATA to confirm.");
-      if (phrase !== "DELETE ALL JIXELS DATA") return;
+      const phrase = prompt("Type DELETE ALL ENTERPRISE DATA to confirm.");
+      if (phrase !== "DELETE ALL ENTERPRISE DATA") return;
       const keysToDelete = [
         ERP_KEY,
         HR_KEY,
@@ -3222,7 +3222,7 @@
 
     initDeptReportCenter({
       title: "Admin Inventory Report",
-      filenameBase: "jixels-admin-inventory-report",
+      filenameBase: "enterprise-admin-inventory-report",
       buildHtml: buildAdminReportHtml,
     });
 

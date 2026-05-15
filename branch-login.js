@@ -3,9 +3,9 @@
 
   const PAGE = document.body?.dataset?.page || "";
 
-  const SESSION_LOCAL_KEY = "jixels_session_branch_v1";
-  const SESSION_SESSION_KEY = "jixels_session_branch_tmp_v1";
-  const BRANCH_ACCOUNTS_KEY = "jixels_branch_accounts_v1";
+  const SESSION_LOCAL_KEY = "enterprise_session_branch_v1";
+  const SESSION_SESSION_KEY = "enterprise_session_branch_tmp_v1";
+  const BRANCH_ACCOUNTS_KEY = "enterprise_branch_accounts_v1";
 
   const $ = (selector, root = document) => root.querySelector(selector);
 
@@ -18,7 +18,7 @@
   };
 
   const loadJson = (key, fallback) => {
-    const store = window.JixelsStore || null;
+    const store = window.EnterpriseStore || null;
     if (store?.getJson) {
       const value = store.getJson(key, undefined);
       if (typeof value !== "undefined" && value !== null) return value;
@@ -102,7 +102,7 @@
   const init = async () => {
     if (PAGE !== "branch-login") return;
 
-    await window.JixelsStore?.bootstrap?.([BRANCH_ACCOUNTS_KEY]);
+    await window.EnterpriseStore?.bootstrap?.([BRANCH_ACCOUNTS_KEY]);
 
     const session = getSession();
     if (session?.role === "branch" && session?.branchId) {
@@ -131,8 +131,8 @@
       const inputId = String(identifier.value || "").trim().toLowerCase();
       const inputPassword = String(password.value || "");
 
-      await window.JixelsStore?.bootstrap?.([BRANCH_ACCOUNTS_KEY]);
-      await window.JixelsStore?.refresh?.([BRANCH_ACCOUNTS_KEY]);
+      await window.EnterpriseStore?.bootstrap?.([BRANCH_ACCOUNTS_KEY]);
+      await window.EnterpriseStore?.refresh?.([BRANCH_ACCOUNTS_KEY]);
       const latestAccounts = loadBranchAccounts();
       const account =
         latestAccounts.find(

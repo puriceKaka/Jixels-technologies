@@ -1,21 +1,21 @@
 {
-  "name": "Jixels Technologies ERP",
-  "short_name": "Jixels ERP",
-  "description": "Jixels Technologies ERP for Director, Admin, Branch, Team Leader, Agent, Finance, Sales, HR, and Operations.",
+  "name": "MAPPHEX Enterprise Operations Cloud",
+  "short_name": "MAPPHEX",
+  "description": "MAPPHEX multi-tenant enterprise management platform for organizations, operations, finance, HR, logistics, reporting, and administration.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#0b1020",
-  "theme_color": "#0b1020",
+  "background_color": "#06101f",
+  "theme_color": "#06101f",
   "icons": [
     {
-      "src": "images/jixels-icon-192.png",
+      "src": "images/enterprise-icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "images/jixels-icon-512.png",
+      "src": "images/enterprise-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

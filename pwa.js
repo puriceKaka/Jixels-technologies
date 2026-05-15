@@ -92,7 +92,7 @@
     btn.className = "pwa-install-btn";
     btn.type = "button";
     btn.textContent = "Install App";
-    btn.setAttribute("aria-label", "Install Jixels ERP app");
+    btn.setAttribute("aria-label", "Install MAPPHEX app");
     btn.addEventListener("click", async () => {
       if (isStandalone()) {
         setButtonState("Installed", true);

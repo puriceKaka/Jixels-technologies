@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Portal Installation • MAPPHEX</title>
+    <link rel="icon" href="images/enterprise-icon-192.png" type="image/png" />
+    <link rel="stylesheet" href="director.css" />
+    <link rel="stylesheet" href="management.css" />
+    <link rel="stylesheet" href="onboarding.css" />
+  </head>
+  <body data-page="portal-selection">
+    <header class="topbar">
+      <div class="brand"><img class="logo-img" src="images/enterprise-logo.png" alt="" /><div><div id="portal-org-name" class="brand-title">MAPPHEX Workspace</div><div class="brand-subtitle muted">Install only the portals your organization needs</div></div></div>
+      <div class="topbar-actions"><a id="portal-workspace-link" class="btn" href="organization-workspace.html">Workspace</a><a class="btn" href="index.html?logout=1">Logout</a></div>
+    </header>
+    <main class="layout onboarding-layout">
+      <section class="panel">
+        <div class="panel-header"><h2>Portal Manager</h2><div id="portal-progress" class="panel-actions muted">Choose a portal to install</div></div>
+        <div id="portal-grid" class="portal-install-grid"></div>
+      </section>
+    </main>
+    <script src="enterprise-core.js"></script>
+    <script src="kv-client.js"></script>
+    <script src="enterprise-store.js"></script>
+    <script src="portal-selection.js?v=6"></script>
+  </body>
+</html>

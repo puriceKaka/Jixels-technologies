@@ -4,6 +4,7 @@ const fs = require("fs");
 const fsp = require("fs/promises");
 const path = require("path");
 const crypto = require("crypto");
+const { setSecurityHeaders } = require("../api/_lib/security");
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || "127.0.0.1";
@@ -12,6 +13,10 @@ const DATA_DIR = path.resolve(__dirname, "data");
 const KV_PATH = path.resolve(DATA_DIR, "kv.json");
 
 const MAX_BODY_BYTES = 2_000_000; // 2MB
+let kvWriteQueue = Promise.resolve();
+let eventSeq = 0;
+const eventLog = [];
+const sseClients = new Map();
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -80,20 +85,18 @@ const readBodyJson = async (req) => {
 
 const sendJson = (res, statusCode, obj) => {
   const body = JSON.stringify(obj ?? null);
-  res.writeHead(statusCode, {
-    "Content-Type": "application/json; charset=utf-8",
-    "Cache-Control": "no-store",
-    "X-Content-Type-Options": "nosniff",
-  });
+  res.statusCode = statusCode;
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader("Cache-Control", "no-store");
+  setSecurityHeaders(res);
   res.end(body);
 };
 
 const sendText = (res, statusCode, text) => {
-  res.writeHead(statusCode, {
-    "Content-Type": "text/plain; charset=utf-8",
-    "Cache-Control": "no-store",
-    "X-Content-Type-Options": "nosniff",
-  });
+  res.statusCode = statusCode;
+  res.setHeader("Content-Type", "text/plain; charset=utf-8");
+  res.setHeader("Cache-Control", "no-store");
+  setSecurityHeaders(res);
   res.end(String(text || ""));
 };
 
@@ -103,6 +106,48 @@ const badRequest = (res, message) => sendJson(res, 400, { ok: false, error: Stri
 
 const ok = (res, data = {}) => sendJson(res, 200, { ok: true, ...data });
 
+const publishEvent = (tenantId, type, payload = {}) => {
+  const event = {
+    seq: ++eventSeq,
+    id: `evt-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    at: new Date().toISOString(),
+    tenantId: tenantId || "default-company",
+    type,
+    payload,
+  };
+  eventLog.push(event);
+  while (eventLog.length > 1000) eventLog.shift();
+  for (const client of sseClients.values()) {
+    if (client.tenantId !== event.tenantId) continue;
+    client.res.write(`id: ${event.seq}\n`);
+    client.res.write(`event: ${event.type}\n`);
+    client.res.write(`data: ${JSON.stringify(event)}\n\n`);
+  }
+  return event;
+};
+
+const handleRealtime = async (req, res, url) => {
+  const tenantId = getTenantId(req);
+  const wantsSse = String(req.headers.accept || "").includes("text/event-stream");
+  const after = Number(url.searchParams.get("after") || 0) || 0;
+
+  if (!wantsSse) {
+    const events = eventLog.filter((event) => event.tenantId === tenantId && Number(event.seq || 0) > after).slice(-200);
+    return ok(res, { tenantId, events });
+  }
+
+  const id = crypto.randomBytes(8).toString("hex");
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream; charset=utf-8",
+    "Cache-Control": "no-store",
+    Connection: "keep-alive",
+    "X-Accel-Buffering": "no",
+  });
+  res.write(`event: connected\ndata: ${JSON.stringify({ ok: true, tenantId })}\n\n`);
+  sseClients.set(id, { tenantId, res });
+  req.on("close", () => sseClients.delete(id));
+};
+
 const sanitizeKey = (keyRaw) => {
   const key = String(keyRaw || "").trim();
   if (!key) return null;
@@ -110,6 +155,37 @@ const sanitizeKey = (keyRaw) => {
   // Disallow path tricks; keys should look like localStorage keys.
   if (key.includes("/") || key.includes("\\") || key.includes("\0")) return null;
   return key;
+};
+
+const cleanTenantId = (value) =>
+  String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 64);
+
+const getTenantId = (req, body = null) =>
+  cleanTenantId(req.headers["x-tenant-id"] || body?.tenantId) || "default-company";
+
+const scopeTenantKey = (tenantId, key) => {
+  const k = String(key || "").trim();
+  if (!k || k.startsWith("tenant:")) return k;
+  return `tenant:${cleanTenantId(tenantId) || "default-company"}:${k}`;
+};
+
+const withKvWriteLock = async (fn) => {
+  const prev = kvWriteQueue;
+  let release;
+  kvWriteQueue = new Promise((resolve) => {
+    release = resolve;
+  });
+  await prev.catch(() => null);
+  try {
+    return await fn();
+  } finally {
+    release();
+  }
 };
 
 const parseUrl = (req) => {
@@ -125,6 +201,14 @@ const isSafePath = (filePath) => {
 const serveStatic = async (req, res, url) => {
   let pathname = decodeURIComponent(url.pathname || "/");
   if (pathname === "/") pathname = "/index.html";
+  if (pathname === "/workspace") pathname = "/organization-workspace.html";
+  if (pathname === "/super-admin.html") return notFound(res);
+  if (pathname === "/_internal/mapphex-control") {
+    const expected = process.env.SUPER_ADMIN_KEY || process.env.INTERNAL_ADMIN_KEY || "mapphex-internal";
+    const provided = String(url.searchParams.get("key") || "").trim();
+    if (provided !== expected) return notFound(res);
+    pathname = "/super-admin.html";
+  }
 
   const filePath = path.resolve(ROOT_DIR, `.${pathname}`);
   if (!isSafePath(filePath)) return notFound(res);
@@ -136,15 +220,14 @@ const serveStatic = async (req, res, url) => {
     const ext = path.extname(filePath).toLowerCase();
     const mime = MIME[ext] || "application/octet-stream";
     const data = await fsp.readFile(filePath);
-    res.writeHead(200, {
-      "Content-Type": mime,
-      "Content-Length": data.length,
-      "Cache-Control": "no-store",
-      "X-Content-Type-Options": "nosniff",
-      "X-Frame-Options": "SAMEORIGIN",
-      "Referrer-Policy": "no-referrer",
-      "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
-    });
+    const cacheControl = [".png", ".jpg", ".jpeg", ".svg", ".css", ".js"].includes(ext)
+      ? "public, max-age=31536000, immutable"
+      : "no-store";
+    res.statusCode = 200;
+    res.setHeader("Content-Type", mime);
+    res.setHeader("Content-Length", data.length);
+    res.setHeader("Cache-Control", cacheControl);
+    setSecurityHeaders(res);
     res.end(data);
   } catch {
     notFound(res);
@@ -152,12 +235,19 @@ const serveStatic = async (req, res, url) => {
 };
 
 const handleApi = async (req, res, url) => {
+  req.query = Object.fromEntries(url.searchParams.entries());
+
+  if (url.pathname === "/api/realtime" && req.method === "GET") {
+    return handleRealtime(req, res, url);
+  }
+
   if (req.method === "GET" && url.pathname === "/api/health") {
-    return ok(res, { time: new Date().toISOString() });
+    return ok(res, { time: new Date().toISOString(), realtimeClients: sseClients.size });
   }
 
   if (url.pathname === "/api/kv" && req.method === "GET") {
-    const key = sanitizeKey(url.searchParams.get("key"));
+    const tenantId = getTenantId(req);
+    const key = sanitizeKey(scopeTenantKey(tenantId, url.searchParams.get("key")));
     const keysRaw = String(url.searchParams.get("keys") || "").trim();
 
     const store = await readKv();
@@ -169,7 +259,7 @@ const handleApi = async (req, res, url) => {
     if (keysRaw) {
       const keys = keysRaw
         .split(",")
-        .map((k) => sanitizeKey(k))
+        .map((k) => sanitizeKey(scopeTenantKey(tenantId, k)))
         .filter(Boolean);
       const items = {};
       for (const k of keys) items[k] = Object.prototype.hasOwnProperty.call(store.items, k) ? store.items[k] : null;
@@ -182,15 +272,19 @@ const handleApi = async (req, res, url) => {
   if (url.pathname === "/api/kv" && req.method === "POST") {
     const body = await readBodyJson(req);
     if (!body || typeof body !== "object") return badRequest(res, "Invalid body");
-    const key = sanitizeKey(body.key);
+    const tenantId = getTenantId(req, body);
+    const key = sanitizeKey(scopeTenantKey(tenantId, body.key));
     if (!key) return badRequest(res, "Invalid key");
 
-    const store = await readKv();
-    store.items[key] = body.value ?? null;
-    store.version = Number(store.version || 1) + 1;
-    const saved = await writeKv(store);
+    const saved = await withKvWriteLock(async () => {
+      const store = await readKv();
+      store.items[key] = body.value ?? null;
+      store.version = Number(store.version || 1) + 1;
+      return writeKv(store);
+    });
 
-    return ok(res, { key, version: saved.version, updatedAt: saved.updatedAt });
+    publishEvent(tenantId, "kv.updated", { key });
+    return ok(res, { key, tenantId, version: saved.version, updatedAt: saved.updatedAt });
   }
 
   if (url.pathname === "/api/kv/batch" && req.method === "POST") {
@@ -198,22 +292,62 @@ const handleApi = async (req, res, url) => {
     if (!body || typeof body !== "object") return badRequest(res, "Invalid body");
     const items = body.items;
     if (!items || typeof items !== "object") return badRequest(res, "Invalid items");
+    const tenantId = getTenantId(req, body);
 
-    const store = await readKv();
     let changed = 0;
-    for (const [kRaw, v] of Object.entries(items)) {
-      const k = sanitizeKey(kRaw);
-      if (!k) continue;
-      store.items[k] = v ?? null;
-      changed += 1;
-    }
-    store.version = Number(store.version || 1) + 1;
-    const saved = await writeKv(store);
-    return ok(res, { changed, version: saved.version, updatedAt: saved.updatedAt });
+    const saved = await withKvWriteLock(async () => {
+      const store = await readKv();
+      for (const [kRaw, v] of Object.entries(items)) {
+        const k = sanitizeKey(scopeTenantKey(tenantId, kRaw));
+        if (!k) continue;
+        store.items[k] = v ?? null;
+        changed += 1;
+      }
+      store.version = Number(store.version || 1) + 1;
+      return writeKv(store);
+    });
+    publishEvent(tenantId, "kv.batch.updated", { changed });
+    return ok(res, { changed, tenantId, version: saved.version, updatedAt: saved.updatedAt });
   }
 
   if (url.pathname === "/api/assets/sync") {
     return require("../api/assets/sync")(req, res);
+  }
+
+  if (url.pathname === "/api/auth/session") {
+    return require("../api/auth/session")(req, res);
+  }
+
+  if (url.pathname === "/api/tasks") {
+    return require("../api/tasks")(req, res);
+  }
+
+  if (url.pathname === "/api/audit") {
+    return require("../api/audit")(req, res);
+  }
+
+  if (url.pathname === "/api/modules") {
+    return require("../api/modules")(req, res);
+  }
+
+  if (url.pathname === "/api/organizations") {
+    return require("../api/organizations")(req, res);
+  }
+
+  if (url.pathname === "/api/org-admin") {
+    return require("../api/org-admin")(req, res);
+  }
+
+  if (url.pathname === "/api/platform-monitoring") {
+    return require("../api/platform-monitoring")(req, res);
+  }
+
+  if (url.pathname === "/api/files") {
+    return require("../api/files")(req, res);
+  }
+
+  if (url.pathname === "/api/realtime") {
+    return require("../api/realtime")(req, res);
   }
 
   return notFound(res);
@@ -226,7 +360,7 @@ const withCors = (req, res) => {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
     res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type,X-Asset-Sync-Token");
+    res.setHeader("Access-Control-Allow-Headers", "Authorization,Content-Type,Idempotency-Key,X-Asset-Sync-Token,X-CSRF-Token,X-Tenant-ID");
     res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
   }
 };
@@ -252,6 +386,6 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`Jixels server running at http://${HOST}:${PORT}`);
+  console.log(`Enterprise server running at http://${HOST}:${PORT}`);
   console.log(`KV store: ${KV_PATH}`);
 });

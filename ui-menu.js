@@ -2,11 +2,27 @@
   "use strict";
 
   const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
   const setMenuOpen = (open) => {
     document.body.classList.toggle("menu-open", !!open);
     const toggle = $("#menu-toggle");
     if (toggle) toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    const sidebar = $("#portal-sidebar");
+    if (sidebar) sidebar.setAttribute("aria-hidden", open || window.innerWidth > 980 ? "false" : "true");
+    const backdrop = $("#menu-backdrop");
+    if (backdrop) backdrop.setAttribute("aria-hidden", open ? "false" : "true");
+    if (open) $("#menu-close")?.focus?.({ preventScroll: true });
+  };
+
+  const setActiveLink = () => {
+    const hash = location.hash || "#dashboard";
+    $$(".sidebar-link").forEach((link) => {
+      const active = link.getAttribute("href") === hash;
+      link.classList.toggle("active", active);
+      if (active) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
+    });
   };
 
   window.addEventListener("DOMContentLoaded", () => {
@@ -29,5 +45,8 @@
     window.addEventListener("resize", () => {
       if (window.innerWidth > 980) setMenuOpen(false);
     });
+    window.addEventListener("hashchange", setActiveLink);
+    setActiveLink();
+    setMenuOpen(false);
   });
 })();

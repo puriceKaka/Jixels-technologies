@@ -3,12 +3,12 @@
 
   const PAGE = document.body?.dataset?.page || "";
 
-  const SESSION_LOCAL_KEY = "jixels_session_agent_v1";
-  const SESSION_SESSION_KEY = "jixels_session_agent_tmp_v1";
-  const AGENT_ACCOUNTS_KEY = "jixels_agent_accounts_v1";
-  const ERP_KEY = "jixels_erp_v1";
-  const API_ENABLED_KEY = "jixels_api_enabled_v1";
-  const SMS_OUTBOX_KEY = "jixels_sms_outbox_v1";
+  const SESSION_LOCAL_KEY = "enterprise_session_agent_v1";
+  const SESSION_SESSION_KEY = "enterprise_session_agent_tmp_v1";
+  const AGENT_ACCOUNTS_KEY = "enterprise_agent_accounts_v1";
+  const ERP_KEY = "enterprise_erp_v1";
+  const API_ENABLED_KEY = "enterprise_api_enabled_v1";
+  const SMS_OUTBOX_KEY = "enterprise_sms_outbox_v1";
   const BRANCH_COUNT = 47;
 
   const $ = (selector, root = document) => root.querySelector(selector);
@@ -22,7 +22,7 @@
   };
 
   const loadJson = (key, fallback) => {
-    const store = window.JixelsStore || null;
+    const store = window.EnterpriseStore || null;
     if (store?.getJson) {
       const value = store.getJson(key, undefined);
       if (typeof value !== "undefined" && value !== null) return value;
@@ -51,7 +51,7 @@
 
   const saveJson = (key, value) => {
     try {
-      window.JixelsStore?.setJson?.(key, value);
+      window.EnterpriseStore?.setJson?.(key, value);
     } catch {
       // fall back below
     }
@@ -64,7 +64,7 @@
   };
 
   const bootstrapKeyFromApi = async (key) => {
-    const store = window.JixelsStore || null;
+    const store = window.EnterpriseStore || null;
     if (store?.bootstrap) {
       const res = await store.bootstrap([key]);
       return !!res?.ok;
@@ -548,7 +548,7 @@
             amount: paidNow,
             phoneNumber: saleTx.customerPhone,
             accountReference: ref,
-            transactionDesc: `Jixels credit payment ${saleTx.serial || ""}`.trim(),
+            transactionDesc: `MAPPHEX credit payment ${saleTx.serial || ""}`.trim(),
           });
         } catch (err) {
           if (creditHelper) creditHelper.textContent = String(err?.message || "M-Pesa STK push failed.");
@@ -597,8 +597,8 @@
       queueSms(
         saleTx.customerPhone,
         nextBalance > 0
-          ? `Jixels Technologies: Credit payment received KES ${formatInt(paidNow)} for serial ${saleTx.serial}. Balance KES ${formatInt(nextBalance)}. Ref: ${ref}.`
-          : `Jixels Technologies: Credit cleared for serial ${saleTx.serial}. Last payment KES ${formatInt(paidNow)}. Ref: ${ref}. Thank you.`,
+          ? `MAPPHEX: Credit payment received KES ${formatInt(paidNow)} for serial ${saleTx.serial}. Balance KES ${formatInt(nextBalance)}. Ref: ${ref}.`
+          : `MAPPHEX: Credit cleared for serial ${saleTx.serial}. Last payment KES ${formatInt(paidNow)}. Ref: ${ref}. Thank you.`,
       );
 
       if (creditSerial) creditSerial.value = "";
@@ -698,7 +698,7 @@
             amount: amountPaid,
             phoneNumber: cust,
             accountReference: ref,
-            transactionDesc: `Jixels ${phone.model || "phone"} sale`,
+            transactionDesc: `MAPPHEX ${phone.model || "phone"} sale`,
           });
         } catch (err) {
           if (smsLine) smsLine.textContent = String(err?.message || "M-Pesa STK push failed.");
@@ -789,8 +789,8 @@
       queueSms(
         cust,
         saleType === "credit"
-          ? `Jixels Technologies: Credit sale for ${sold.model} (${sold.storage}, ${sold.color}). Paid KES ${formatInt(amountPaid)}, balance KES ${formatInt(balance)}, due ${creditDueDate}. Serial: ${sold.serial}. Ref: ${ref}.`
-          : `Jixels Technologies: Payment received KES ${formatInt(amount)} for ${sold.model} (${sold.storage}, ${sold.color}). Serial: ${sold.serial}. Ref: ${ref}. Thank you.`,
+          ? `MAPPHEX: Credit sale for ${sold.model} (${sold.storage}, ${sold.color}). Paid KES ${formatInt(amountPaid)}, balance KES ${formatInt(balance)}, due ${creditDueDate}. Serial: ${sold.serial}. Ref: ${ref}.`
+          : `MAPPHEX: Payment received KES ${formatInt(amount)} for ${sold.model} (${sold.storage}, ${sold.color}). Serial: ${sold.serial}. Ref: ${ref}. Thank you.`,
       );
 
       renderKPIs();
@@ -831,7 +831,7 @@
       }
       const csv = rows.map((r) => r.map(csvEscape).join(",")).join("\n");
       downloadText(
-        `jixels-${branch.id}-sales-${new Date().toISOString().slice(0, 10)}.csv`,
+        `enterprise-${branch.id}-sales-${new Date().toISOString().slice(0, 10)}.csv`,
         csv,
       );
     };
@@ -890,7 +890,7 @@
     sync();
     navigateTo(String(window.location.hash || "").replace("#", "") || "overview");
 
-    const store = window.JixelsStore || null;
+    const store = window.EnterpriseStore || null;
     if (store?.subscribe) {
       store.subscribe((ev) => {
         if (!ev || ev.type !== "set" || ev.key !== ERP_KEY) return;

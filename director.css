@@ -1,10 +1,10 @@
 /*
-  Jixels Technologies – Director ERP UI
+  MAPPHEX – Director ERP UI
   (Front-end prototype styling; connect backend auth/DB for production.)
 */
 
 :root {
-  --bg: #0b1020;
+  --bg: #06101f;
   --panel: rgba(255, 255, 255, 0.06);
   --panel-2: rgba(255, 255, 255, 0.08);
   --border: rgba(255, 255, 255, 0.14);
@@ -15,8 +15,8 @@
   --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.30);
   --radius: 18px;
   --radius-sm: 12px;
-  --accent: #7c3aed;
-  --accent-2: #22d3ee;
+  --accent: #0077ff;
+  --accent-2: #5bd6ff;
   --danger: #fb7185;
   --ok: #34d399;
   --warn: #fbbf24;
@@ -38,9 +38,9 @@ body {
   font-family: var(--font);
   color: var(--text);
   background:
-    radial-gradient(1100px 650px at 18% -10%, rgba(124, 58, 237, 0.45), transparent 55%),
-    radial-gradient(900px 520px at 92% 10%, rgba(34, 211, 238, 0.32), transparent 52%),
-    radial-gradient(800px 500px at 50% 115%, rgba(16, 185, 129, 0.18), transparent 55%),
+    radial-gradient(1100px 650px at 18% -10%, rgba(0, 119, 255, 0.36), transparent 55%),
+    radial-gradient(900px 520px at 92% 10%, rgba(91, 214, 255, 0.24), transparent 52%),
+    radial-gradient(800px 500px at 50% 115%, rgba(148, 163, 184, 0.16), transparent 55%),
     linear-gradient(180deg, var(--bg), #070a14 72%);
 }
 
@@ -86,12 +86,12 @@ code {
 }
 
 .btn.primary {
-  border-color: rgba(124, 58, 237, 0.55);
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.9), rgba(34, 211, 238, 0.65));
+  border-color: rgba(0, 119, 255, 0.58);
+  background: linear-gradient(135deg, rgba(0, 119, 255, 0.95), rgba(91, 214, 255, 0.68));
 }
 
 .btn.primary:hover {
-  border-color: rgba(124, 58, 237, 0.9);
+  border-color: rgba(91, 214, 255, 0.85);
   filter: brightness(1.04);
 }
 
@@ -163,7 +163,7 @@ code {
   place-items: center;
   font-weight: 800;
   letter-spacing: 0.3px;
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.95), rgba(34, 211, 238, 0.75));
+  background: linear-gradient(135deg, rgba(0, 119, 255, 0.95), rgba(91, 214, 255, 0.75));
   box-shadow: var(--shadow-soft);
 }
 
@@ -793,5 +793,159 @@ label.remember-row input[type="checkbox"] {
   .report-output {
     margin: 0 10px 14px;
     padding: 10px;
+  }
+}
+
+/* Enterprise responsive hardening */
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn,
+.icon-btn,
+button,
+input,
+select {
+  touch-action: manipulation;
+}
+
+.topbar {
+  min-height: 72px;
+}
+
+.topbar-actions {
+  min-width: 0;
+}
+
+.layout,
+.panel,
+.kpi,
+.table-wrap {
+  min-width: 0;
+}
+
+.panel {
+  contain: layout paint;
+}
+
+@media (max-width: 760px) {
+  body {
+    background-attachment: scroll;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    padding: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .brand {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .brand-title,
+  .brand-subtitle {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .topbar-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .topbar-actions .btn,
+  .topbar-actions .badge,
+  .panel-actions .btn,
+  .auth-form .btn {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .layout {
+    width: calc(100% - 20px);
+    margin: 12px auto 28px;
+    gap: 12px;
+  }
+
+  .panel {
+    border-radius: 16px;
+  }
+
+  .panel-header {
+    padding: 14px;
+    display: grid;
+    align-items: start;
+  }
+
+  .panel-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .kpis {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+
+  .kpi {
+    min-height: 86px;
+  }
+
+  .table-wrap {
+    padding: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table {
+    min-width: 680px;
+  }
+
+  input[type="search"],
+  input[type="text"],
+  input[type="password"],
+  input[type="number"],
+  input[type="date"],
+  textarea,
+  select {
+    width: 100%;
+    min-height: 44px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  .topbar-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .logo-img {
+    width: 48px;
+    height: 38px;
+  }
+
+  .toast {
+    inset: auto 10px 10px 10px;
+    max-width: none;
   }
 }

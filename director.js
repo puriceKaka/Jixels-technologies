@@ -3,13 +3,13 @@
 
   const PAGE = document.body?.dataset?.page || "";
 
-  const SESSION_LOCAL_KEY = "jixels_session_director_v1";
-  const SESSION_SESSION_KEY = "jixels_session_director_tmp_v1";
-  const DIRECTOR_ACCOUNT_KEY = "jixels_director_account_v1";
-  const DATA_KEY = "jixels_erp_v1";
-  const UI_BRANCHES_OPEN_KEY = "jixels_ui_branches_open_v1";
-  const UI_REPORTS_OPEN_KEY = "jixels_ui_reports_open_v1";
-  const API_ENABLED_KEY = "jixels_api_enabled_v1";
+  const SESSION_LOCAL_KEY = "enterprise_session_director_v1";
+  const SESSION_SESSION_KEY = "enterprise_session_director_tmp_v1";
+  const DIRECTOR_ACCOUNT_KEY = "enterprise_director_account_v1";
+  const DATA_KEY = "enterprise_erp_v1";
+  const UI_BRANCHES_OPEN_KEY = "enterprise_ui_branches_open_v1";
+  const UI_REPORTS_OPEN_KEY = "enterprise_ui_reports_open_v1";
+  const API_ENABLED_KEY = "enterprise_api_enabled_v1";
 
   const BRANCH_COUNT = 47;
   const REALTIME_INTERVAL_MS = 4500;
@@ -25,7 +25,7 @@
   };
 
   const loadJson = (key, fallback) => {
-    const store = window.JixelsStore || null;
+    const store = window.EnterpriseStore || null;
     if (store?.getJson) {
       const value = store.getJson(key, undefined);
       if (typeof value !== "undefined" && value !== null) return value;
@@ -37,7 +37,7 @@
 
   const saveJson = (key, value) => {
     try {
-      window.JixelsStore?.setJson?.(key, value);
+      window.EnterpriseStore?.setJson?.(key, value);
     } catch {
       // fall back below
     }
@@ -64,7 +64,7 @@
   };
 
   const bootstrapKeyFromApi = async (key) => {
-    const store = window.JixelsStore || null;
+    const store = window.EnterpriseStore || null;
     if (store?.bootstrap) {
       const res = await store.bootstrap([key]);
       return !!res?.ok;
@@ -86,7 +86,7 @@
 
   const subscribeDataChanges = (callback) => {
     const cb = typeof callback === "function" ? callback : () => {};
-    const store = window.JixelsStore || null;
+    const store = window.EnterpriseStore || null;
     if (store?.subscribe) {
       store.subscribe((ev) => {
         if (!ev || ev.type !== "set" || ev.key !== DATA_KEY) return;
@@ -1174,7 +1174,7 @@
 
       return `
         <h3>${range.label} Company Report</h3>
-        <p><strong>Jixels Technologies</strong> • All branches</p>
+        <p><strong>MAPPHEX</strong> • All branches</p>
         <div class="report-grid">
           <div class="report-card">
             <div class="label">Generated</div>
@@ -1334,7 +1334,7 @@
 
       const csv = rows.map((row) => row.map(csvEscape).join(",")).join("\n");
       const stamp = new Date().toISOString().slice(0, 10);
-      downloadText(`jixels-${range.key}-report-${stamp}.csv`, csv);
+      downloadText(`enterprise-${range.key}-report-${stamp}.csv`, csv);
     };
 
     const makeGeneralBranchesTableRows = () => {
@@ -1388,7 +1388,7 @@
 
       return `
         <h3>Company Operations Report</h3>
-        <p><strong>Jixels Technologies</strong> • All branches</p>
+        <p><strong>MAPPHEX</strong> • All branches</p>
         <div class="report-grid">
           <div class="report-card">
             <div class="label">Generated</div>
@@ -1526,7 +1526,7 @@
         .join("\n");
 
       downloadText(
-        `jixels-general-report-${new Date().toISOString().slice(0, 10)}.csv`,
+        `enterprise-general-report-${new Date().toISOString().slice(0, 10)}.csv`,
         csv,
       );
     };
@@ -1894,7 +1894,7 @@
         .join("\n");
 
       downloadText(
-        `jixels-${branch.id}-report-${new Date().toISOString().slice(0, 10)}.csv`,
+        `enterprise-${branch.id}-report-${new Date().toISOString().slice(0, 10)}.csv`,
         csv,
       );
     };
@@ -2018,7 +2018,7 @@
           const range = getPeriodRange(currentReport.period);
           const html = buildCompanyPeriodReportHtml(currentReport.period);
           downloadWordDoc(
-            `jixels-company-${range.label.toLowerCase()}-report-${stamp}.doc`,
+            `enterprise-company-${range.label.toLowerCase()}-report-${stamp}.doc`,
             html,
           );
           toast("Downloaded", `${range.label} report (Word) saved.`);
@@ -2027,7 +2027,7 @@
         }
 
         const html = buildGeneralReportHtml();
-        downloadWordDoc(`jixels-company-report-${stamp}.doc`, html);
+        downloadWordDoc(`enterprise-company-report-${stamp}.doc`, html);
         toast("Downloaded", "Company report (Word) saved.");
         setReportsOpen(false);
       });
@@ -2083,7 +2083,7 @@
         if (!branch) return;
         const html = buildBranchReportHtml(branchId);
         downloadWordDoc(
-          `jixels-${branch.id}-director-report-${new Date()
+          `enterprise-${branch.id}-director-report-${new Date()
             .toISOString()
             .slice(0, 10)}.doc`,
           html,
@@ -2241,7 +2241,7 @@
 
       return `
         <h3>HR Operations Report</h3>
-        <p><strong>Jixels Technologies</strong> • HR (All branches)</p>
+        <p><strong>MAPPHEX</strong> • HR (All branches)</p>
         <div class="report-grid">
           <div class="report-card">
             <div class="label">Generated</div>
@@ -2335,7 +2335,7 @@
       reportDocBtn.addEventListener("click", () => {
         const html = buildHrReportHtml();
         downloadWordDocFile(
-          `jixels-hr-report-${new Date().toISOString().slice(0, 10)}.doc`,
+          `enterprise-hr-report-${new Date().toISOString().slice(0, 10)}.doc`,
           html,
         );
       });
@@ -2453,7 +2453,7 @@
 
       return `
         <h3>Finance Operations Report</h3>
-        <p><strong>Jixels Technologies</strong> • Finance (All branches)</p>
+        <p><strong>MAPPHEX</strong> • Finance (All branches)</p>
         <div class="report-grid">
           <div class="report-card">
             <div class="label">Generated</div>
@@ -2570,7 +2570,7 @@
       reportDocBtn.addEventListener("click", () => {
         const html = buildFinanceReportHtml();
         downloadWordDocFile(
-          `jixels-finance-report-${new Date().toISOString().slice(0, 10)}.doc`,
+          `enterprise-finance-report-${new Date().toISOString().slice(0, 10)}.doc`,
           html,
         );
       });

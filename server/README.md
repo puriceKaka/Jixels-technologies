@@ -1,10 +1,10 @@
-## Jixels Backend (DB‑Ready)
+## Enterprise Backend (DB‑Ready)
 
 This folder adds a small Node.js server so the project is **easy to switch to a real database later**.
 
 ### What it does now
 - Serves the existing frontend files (HTML/CSS/JS) from the repo root.
-- Provides a simple JSON **Key/Value API** that can store the same keys the frontend currently uses in `localStorage` (example: `jixels_erp_v1`, `jixels_hr_v1`).
+- Provides a simple JSON **Key/Value API** that can store the same keys the frontend currently uses in `localStorage` (example: `enterprise_erp_v1`, `enterprise_hr_v1`).
 - Persists data to `server/data/kv.json` (so it survives refresh/restart).
 
 ### Start the server
@@ -20,7 +20,7 @@ http://localhost:3000/departments.html
 ### Enable backend sync (frontend)
 In the browser console:
 ```js
-localStorage.setItem("jixels_api_enabled_v1", "1");
+localStorage.setItem("enterprise_api_enabled_v1", "1");
 location.reload();
 ```
 When enabled, the frontend will:

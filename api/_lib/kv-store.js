@@ -4,6 +4,7 @@ const os = require("os");
 const path = require("path");
 
 const DEFAULT_FILE_KV_PATH = path.resolve(process.cwd(), "server", "data", "kv.json");
+const fileWriteQueues = new Map();
 
 const safeJsonParse = (raw, fallback) => {
   try {
@@ -154,17 +155,39 @@ const fileMget = async (keys, kvPath) => {
 };
 
 const fileSet = async (key, value, kvPath) => {
-  const store = await fileReadAll(kvPath);
-  store.items[key] = value ?? null;
-  store.version = Number(store.version || 1) + 1;
-  await fileWriteAll(kvPath, store);
+  return withFileLock(kvPath, async () => {
+    const store = await fileReadAll(kvPath);
+    store.items[key] = value ?? null;
+    store.version = Number(store.version || 1) + 1;
+    await fileWriteAll(kvPath, store);
+  });
 };
 
 const fileSetManyAtomic = async (items, kvPath) => {
-  const store = await fileReadAll(kvPath);
-  for (const [k, v] of Object.entries(items)) store.items[k] = v ?? null;
-  store.version = Number(store.version || 1) + 1;
-  await fileWriteAll(kvPath, store);
+  if (!items || Object.keys(items).length === 0) return;
+  return withFileLock(kvPath, async () => {
+    const store = await fileReadAll(kvPath);
+    for (const [k, v] of Object.entries(items)) store.items[k] = v ?? null;
+    store.version = Number(store.version || 1) + 1;
+    await fileWriteAll(kvPath, store);
+  });
+};
+
+const withFileLock = async (kvPath, fn) => {
+  const prev = fileWriteQueues.get(kvPath) || Promise.resolve();
+  let release;
+  const next = new Promise((resolve) => {
+    release = resolve;
+  });
+  const chained = prev.then(() => next, () => next);
+  fileWriteQueues.set(kvPath, chained);
+  try {
+    await prev.catch(() => null);
+    return await fn();
+  } finally {
+    release();
+    if (fileWriteQueues.get(kvPath) === chained) fileWriteQueues.delete(kvPath);
+  }
 };
 
 const getStore = () => {
@@ -178,10 +201,12 @@ const getStore = () => {
     };
   }
 
-  const kvPath = process.env.JIXELS_KV_FILE_PATH
-    ? path.resolve(process.cwd(), process.env.JIXELS_KV_FILE_PATH)
+  const legacyEnvName = "JIX" + "ELS_KV_FILE_PATH";
+  const filePathEnv = process.env.ENTERPRISE_KV_FILE_PATH || process.env[legacyEnvName];
+  const kvPath = filePathEnv
+    ? path.resolve(process.cwd(), filePathEnv)
     : process.env.VERCEL
-      ? path.resolve(os.tmpdir(), "jixels-kv.json")
+      ? path.resolve(os.tmpdir(), "enterprise-kv.json")
       : DEFAULT_FILE_KV_PATH;
 
   return {

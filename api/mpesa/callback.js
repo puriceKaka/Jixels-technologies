@@ -47,7 +47,7 @@ module.exports = async (req, res) => {
     };
 
     const store = getStore();
-    const logKey = "jixels_mpesa_stk_callbacks_v1";
+    const logKey = "enterprise_mpesa_stk_callbacks_v1";
     const current = (await store.get(logKey)) || [];
     const arr = Array.isArray(current) ? current : [];
     arr.push(entry);
@@ -68,7 +68,7 @@ module.exports = async (req, res) => {
       if (entry.phoneNumber) {
         await postOneSignal("sms", {
           include_phone_numbers: [String(entry.phoneNumber)],
-          contents: { en: `Jixels Technologies: Payment received KES ${amount.toLocaleString("en-US")}. Receipt ${receipt}.` },
+          contents: { en: `MAPPHEX: Payment received KES ${amount.toLocaleString("en-US")}. Receipt ${receipt}.` },
           data: { type: "mpesa_receipt", receipt },
         }).catch(() => null);
       }

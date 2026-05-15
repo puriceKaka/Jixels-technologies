@@ -1,13 +1,20 @@
 const { sendJson, readJsonBody } = require("./_lib/http");
 const { sanitizeKey } = require("./_lib/keys");
 const { getStore } = require("./_lib/kv-store");
+const { getTenantId, scopeTenantKey } = require("./_lib/tenant");
+const { appendEvent } = require("./_lib/events");
+const { assertIdempotent, assertObject, assertSameOrigin, rateLimit } = require("./_lib/security");
 
 module.exports = async (req, res) => {
   const store = getStore();
 
   try {
+    rateLimit(req, { scope: "kv", limit: 240, windowMs: 60_000 });
+    assertSameOrigin(req);
+
     if (req.method === "GET") {
-      const key = sanitizeKey(req.query?.key);
+      const tenantId = getTenantId(req);
+      const key = sanitizeKey(scopeTenantKey(tenantId, req.query?.key));
       const keysRaw = String(req.query?.keys || "").trim();
 
       if (key) {
@@ -18,7 +25,7 @@ module.exports = async (req, res) => {
       if (keysRaw) {
         const keys = keysRaw
           .split(",")
-          .map((k) => sanitizeKey(k))
+          .map((k) => sanitizeKey(scopeTenantKey(tenantId, k)))
           .filter(Boolean);
         if (!keys.length) return sendJson(res, 400, { ok: false, error: "Invalid keys" });
         const items = await store.mget(keys);
@@ -29,17 +36,19 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === "POST") {
-      const body = await readJsonBody(req);
-      if (!body || typeof body !== "object") return sendJson(res, 400, { ok: false, error: "Invalid body" });
-      const key = sanitizeKey(body.key);
+      const body = assertObject(await readJsonBody(req));
+      assertIdempotent(req, body);
+      const tenantId = getTenantId(req, body);
+      const key = sanitizeKey(scopeTenantKey(tenantId, body.key));
       if (!key) return sendJson(res, 400, { ok: false, error: "Invalid key" });
       await store.set(key, body.value ?? null);
-      return sendJson(res, 200, { ok: true, key });
+      await appendEvent(store, tenantId, "kv.updated", { key });
+      return sendJson(res, 200, { ok: true, key, tenantId });
     }
 
     return sendJson(res, 405, { ok: false, error: "Method not allowed" });
   } catch (err) {
     const status = Number(err?.statusCode || 500) || 500;
-    return sendJson(res, status, { ok: false, error: "Server error" });
+    return sendJson(res, status, { ok: false, error: status >= 500 ? "Server error" : String(err.message || "Request failed") });
   }
 };

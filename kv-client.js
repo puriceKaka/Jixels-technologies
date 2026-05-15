@@ -4,7 +4,7 @@
   const API_TIMEOUT_MS = 6500;
   const FLUSH_DEBOUNCE_MS = 120;
   const FLUSH_RETRY_MS = 1200;
-  const IDB_NAME = "jixels_erp_indexeddb_v1";
+  const IDB_NAME = "enterprise_erp_indexeddb_v1";
   const IDB_STORE = "kv";
 
   const mem = new Map();
@@ -23,7 +23,7 @@
 
   try {
     if (typeof BroadcastChannel !== "undefined") {
-      bc = new BroadcastChannel("jixels_kv_v1");
+      bc = new BroadcastChannel("enterprise_kv_v1");
       bc.addEventListener("message", (ev) => {
         const msg = ev?.data;
         if (!msg || typeof msg !== "object") return;
@@ -321,7 +321,7 @@
     return () => subscribers.delete(cb);
   };
 
-  window.JixelsKV = Object.freeze({
+  const api = Object.freeze({
     bootstrap: tryHydrate,
     refresh,
     getJson,
@@ -335,4 +335,5 @@
       return idbState;
     },
   });
+  window.EnterpriseKV = api;
 })();

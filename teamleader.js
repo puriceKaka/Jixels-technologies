@@ -2,11 +2,11 @@
   "use strict";
 
   const PAGE = document.body?.dataset?.page || "";
-  const SESSION_LOCAL_KEY = "jixels_session_teamleader_v1";
-  const SESSION_SESSION_KEY = "jixels_session_teamleader_tmp_v1";
-  const TEAMLEADER_ACCOUNTS_KEY = "jixels_teamleader_accounts_v1";
-  const AGENT_ACCOUNTS_KEY = "jixels_agent_accounts_v1";
-  const ERP_KEY = "jixels_erp_v1";
+  const SESSION_LOCAL_KEY = "enterprise_session_teamleader_v1";
+  const SESSION_SESSION_KEY = "enterprise_session_teamleader_tmp_v1";
+  const TEAMLEADER_ACCOUNTS_KEY = "enterprise_teamleader_accounts_v1";
+  const AGENT_ACCOUNTS_KEY = "enterprise_agent_accounts_v1";
+  const ERP_KEY = "enterprise_erp_v1";
   const BRANCH_COUNT = 47;
 
   const $ = (selector, root = document) => root.querySelector(selector);
@@ -20,7 +20,7 @@
   };
 
   const loadJson = (key, fallback) => {
-    const store = window.JixelsStore || null;
+    const store = window.EnterpriseStore || null;
     if (store?.getJson) {
       const value = store.getJson(key, undefined);
       if (typeof value !== "undefined" && value !== null) return value;
@@ -31,7 +31,7 @@
   };
 
   const saveJson = (key, value) => {
-    const store = window.JixelsStore || null;
+    const store = window.EnterpriseStore || null;
     if (store?.setJson) {
       store.setJson(key, value);
       localStorage.setItem(key, JSON.stringify(value));
@@ -135,7 +135,7 @@
   const init = async () => {
     if (PAGE !== "teamleader-dashboard") return;
 
-    await window.JixelsStore?.bootstrap?.([TEAMLEADER_ACCOUNTS_KEY, AGENT_ACCOUNTS_KEY, ERP_KEY]);
+    await window.EnterpriseStore?.bootstrap?.([TEAMLEADER_ACCOUNTS_KEY, AGENT_ACCOUNTS_KEY, ERP_KEY]);
     const session = requireTeamLeader();
     if (!session) return;
 
@@ -179,7 +179,7 @@
       erp.lastUpdated = isoNow();
       saveJson(ERP_KEY, erp);
       try {
-        await window.JixelsStore?.flush?.();
+        await window.EnterpriseStore?.flush?.();
       } catch {
         // Local save is already complete.
       }
@@ -389,7 +389,7 @@
     };
 
     const sync = async () => {
-      await window.JixelsStore?.refresh?.([TEAMLEADER_ACCOUNTS_KEY, AGENT_ACCOUNTS_KEY, ERP_KEY]);
+      await window.EnterpriseStore?.refresh?.([TEAMLEADER_ACCOUNTS_KEY, AGENT_ACCOUNTS_KEY, ERP_KEY]);
       erp = loadJson(ERP_KEY, erp);
       renderAgents();
       renderPhones();
@@ -410,7 +410,7 @@
     if (saveBtn) saveBtn.addEventListener("click", () => allocatePhone().catch(() => null));
     if (clearBtn) clearBtn.addEventListener("click", () => clearForm());
 
-    const store = window.JixelsStore || null;
+    const store = window.EnterpriseStore || null;
     if (store?.subscribe) {
       store.subscribe((ev) => {
         if (ev?.key !== ERP_KEY && ev?.key !== AGENT_ACCOUNTS_KEY) return;

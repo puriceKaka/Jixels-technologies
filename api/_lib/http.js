@@ -1,11 +1,12 @@
 const MAX_BODY_BYTES = 2_000_000;
+const { setSecurityHeaders } = require("./security");
 
 const sendJson = (res, statusCode, obj) => {
   const body = JSON.stringify(obj ?? null);
   res.statusCode = statusCode;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.setHeader("Cache-Control", "no-store");
-  res.setHeader("X-Content-Type-Options", "nosniff");
+  setSecurityHeaders(res);
   res.end(body);
 };
 
@@ -13,7 +14,7 @@ const sendText = (res, statusCode, text) => {
   res.statusCode = statusCode;
   res.setHeader("Content-Type", "text/plain; charset=utf-8");
   res.setHeader("Cache-Control", "no-store");
-  res.setHeader("X-Content-Type-Options", "nosniff");
+  setSecurityHeaders(res);
   res.end(String(text || ""));
 };
 
@@ -51,4 +52,3 @@ module.exports = {
   sendText,
   readJsonBody,
 };
-

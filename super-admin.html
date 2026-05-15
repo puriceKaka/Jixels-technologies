@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Super Admin Control Center • MAPPHEX</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="images/enterprise-icon-192.png" type="image/png" />
+    <link rel="stylesheet" href="director.css" />
+    <link rel="stylesheet" href="portal.css" />
+    <link rel="stylesheet" href="enterprise-platform.css" />
+    <link rel="stylesheet" href="management.css" />
+  </head>
+  <body data-page="super-admin">
+    <header class="topbar">
+      <div class="brand">
+        <button id="menu-toggle" class="icon-btn" type="button" aria-label="Open menu" aria-expanded="false">
+          <span class="icon-hamburger" aria-hidden="true"></span>
+        </button>
+        <img class="logo-img" src="images/enterprise-logo.png" alt="" />
+        <div>
+          <div class="brand-title">Super Admin</div>
+          <div class="brand-subtitle muted">Platform control center</div>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <a class="btn" href="organization-register.html">Register organization</a>
+        <a class="btn" href="index.html">Platform</a>
+      </div>
+    </header>
+
+    <div class="portal-shell">
+      <aside id="portal-sidebar" class="portal-sidebar" aria-label="Super Admin menu">
+        <div class="sidebar-header">
+          <div class="sidebar-title">Control Center</div>
+          <button id="menu-close" class="icon-btn" type="button" aria-label="Close menu">
+            <span class="icon-close" aria-hidden="true"></span>
+          </button>
+        </div>
+        <nav class="sidebar-nav">
+          <a class="sidebar-link active" href="#overview">Overview</a>
+          <a class="sidebar-link" href="#organizations">Organizations</a>
+          <a class="sidebar-link" href="#monitoring">Monitoring</a>
+          <a class="sidebar-link" href="#users">Global Users</a>
+          <a class="sidebar-link" href="#activity">Activity</a>
+          <a class="sidebar-link" href="#security">Security</a>
+          <a class="sidebar-link" href="#settings">Platform Settings</a>
+        </nav>
+        <div class="sidebar-foot muted">Global authority with tenant-scoped support switching and audited oversight.</div>
+      </aside>
+      <div id="menu-backdrop" class="menu-backdrop" aria-hidden="true"></div>
+
+      <main class="layout super-layout">
+        <section class="panel" id="overview">
+          <div class="panel-header">
+            <h2>Platform Overview</h2>
+            <div class="panel-actions">
+              <input id="super-search" type="search" placeholder="Search organizations" />
+              <input id="global-search-input" type="search" placeholder="Global user/org search" />
+              <button id="super-refresh" class="btn" type="button">Refresh</button>
+            </div>
+          </div>
+          <div class="kpis">
+            <article class="kpi"><div class="kpi-label">Organizations</div><div id="kpi-orgs" class="kpi-value">0</div><div class="kpi-foot muted">Registered tenants</div></article>
+            <article class="kpi"><div class="kpi-label">Active</div><div id="kpi-active" class="kpi-value">0</div><div class="kpi-foot muted">Operational</div></article>
+            <article class="kpi"><div class="kpi-label">Users</div><div id="kpi-users" class="kpi-value">0</div><div class="kpi-foot muted">Across tenants</div></article>
+            <article class="kpi"><div class="kpi-label">Revenue</div><div id="kpi-revenue" class="kpi-value">0</div><div class="kpi-foot muted">Reported summaries</div></article>
+          </div>
+          <div class="super-grid">
+            <article class="report-card"><div class="label">Realtime clients</div><div id="kpi-sessions" class="value">0</div></article>
+            <article class="report-card"><div class="label">Platform health</div><div id="kpi-health" class="value">Checking</div></article>
+            <article class="report-card"><div class="label">Security alerts</div><div id="kpi-alerts" class="value">0</div></article>
+          </div>
+        </section>
+
+        <section class="panel" id="monitoring">
+          <div class="panel-header">
+            <h2>Global Monitoring</h2>
+            <div class="panel-actions muted">Traffic, storage, queues, audit, and live operating status</div>
+          </div>
+          <div class="super-grid super-grid-4">
+            <article class="report-card"><div class="label">Active users</div><div id="mon-active-users" class="value">0</div></article>
+            <article class="report-card"><div class="label">Branches</div><div id="mon-branches" class="value">0</div></article>
+            <article class="report-card"><div class="label">Queued jobs</div><div id="mon-queue" class="value">0</div></article>
+            <article class="report-card"><div class="label">Stored files</div><div id="mon-files" class="value">0</div></article>
+          </div>
+          <div class="monitor-grid">
+            <div class="monitor-chart" aria-label="Organization growth chart">
+              <span style="height: 34%"></span><span style="height: 46%"></span><span style="height: 52%"></span><span style="height: 61%"></span><span style="height: 74%"></span><span style="height: 82%"></span><span style="height: 92%"></span>
+            </div>
+            <div class="monitor-stack">
+              <div><strong id="mon-audit">0</strong><span>Audit events</span></div>
+              <div><strong id="mon-modules">0</strong><span>Enabled modules</span></div>
+              <div><strong id="mon-suspended">0</strong><span>Suspended tenants</span></div>
+            </div>
+          </div>
+          <div id="global-search-results" class="search-results" aria-live="polite"></div>
+        </section>
+
+        <section class="panel" id="organizations">
+          <div class="panel-header">
+            <h2>Organizations</h2>
+            <div class="panel-actions muted">Suspend, activate, and inspect summaries</div>
+          </div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr><th>Organization</th><th>ID</th><th>Type</th><th>Admin</th><th>Status</th><th>Users</th><th>Subscription</th><th>Actions</th></tr>
+              </thead>
+              <tbody id="org-table"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel" id="users">
+          <div class="panel-header"><h2>Global Users</h2><div class="panel-actions muted">Organization admins and staff across all tenants</div></div>
+          <div class="table-wrap">
+            <table class="table"><thead><tr><th>User</th><th>Email</th><th>Role</th><th>Organization</th><th>Status</th></tr></thead><tbody id="global-users-table"></tbody></table>
+          </div>
+        </section>
+
+        <section class="panel" id="activity">
+          <div class="panel-header"><h2>Realtime Activity</h2><div class="panel-actions muted">Platform event stream</div></div>
+          <div class="table-wrap">
+            <table class="table"><thead><tr><th>Time</th><th>Type</th><th>Organization</th><th>Payload</th></tr></thead><tbody id="activity-table"></tbody></table>
+          </div>
+        </section>
+
+        <section class="panel" id="security">
+          <div class="panel-header"><h2>Security & Resources</h2><div class="panel-actions muted">Monitoring summary</div></div>
+          <div class="super-grid">
+            <article class="report-card"><div class="label">Tenant isolation</div><div class="value">Enabled</div></article>
+            <article class="report-card"><div class="label">Permission override</div><div class="value">Super Admin</div></article>
+            <article class="report-card"><div class="label">Support switching</div><div class="value">Audited</div></article>
+          </div>
+          <div id="heatmap" class="heatmap"></div>
+        </section>
+
+        <section class="panel" id="settings">
+          <div class="panel-header"><h2>Global Notification</h2><div class="panel-actions muted">Broadcast to all organizations</div></div>
+          <form id="broadcast-form" class="super-form">
+            <label class="field"><span>Title</span><input name="title" required placeholder="Platform update" /></label>
+            <label class="field"><span>Message</span><input name="body" required placeholder="Maintenance window, policy update, alert..." /></label>
+            <button class="btn primary" type="submit">Send global notification</button>
+          </form>
+        </section>
+      </main>
+    </div>
+
+    <script src="enterprise-core.js"></script>
+    <script src="kv-client.js"></script>
+    <script src="enterprise-store.js"></script>
+    <script src="enterprise-platform.js"></script>
+    <script src="ui-menu.js"></script>
+    <script src="internal-control.js"></script>
+  </body>
+</html>
