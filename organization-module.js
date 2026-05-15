@@ -174,9 +174,9 @@
 
       document.title = `${moduleDef.title} • ByteWave`;
       $("#module-title").textContent = moduleDef.title;
-      $("#module-subtitle").textContent = `${org.organizationId || session.tenantId} • unified workspace`;
+      $("#module-subtitle").textContent = `${org.organizationId || session.tenantId} • workspace portal`;
       $("#module-heading").textContent = moduleDef.title;
-      $("#module-description").textContent = `${moduleDef.description} This module shares the same ${org.name || "organization"} database, users, roles, analytics, and activity stream.`;
+      $("#module-description").textContent = `${moduleDef.description} This portal runs inside ${org.name || "the organization's"} workspace with the active account, roles, analytics, and activity stream.`;
       $("#module-icon").textContent = moduleCode;
       $("#module-org-name").textContent = org.name || "Organization";
       $("#module-org-id").textContent = org.organizationId || session.tenantId;
